@@ -1,0 +1,2852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Wabi-Sabi Bonsai: The Zen Garden</title>
+  
+  <!-- iOS Standalone Web App Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Zen Bonsai">
+  <meta name="theme-color" content="#0c0a09">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+    
+    :root {
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+    }
+    
+    body {
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior: none;
+      background-color: #0c0a09;
+      color: #e7e5e4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    
+    .font-pixel {
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    /* Crisp nearest-neighbor retro pixel rendering */
+    canvas.pixel-canvas {
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-crisp-edges;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="h-[100dvh] w-full flex flex-col justify-between overflow-hidden bg-stone-950 select-none">
+
+  <!-- ================================================================= -->
+  <!-- TOP APP HEADER -->
+  <!-- ================================================================= -->
+  <header class="pt-[calc(var(--sat)+4px)] pb-1 px-2.5 bg-stone-900/95 border-b border-stone-800 flex items-center justify-between shrink-0 z-30">
+    <div class="flex items-center gap-1.5">
+      <span class="text-amber-400 font-pixel text-[10px] tracking-tight">🪴 侘寂 BONSAI</span>
+      <span class="text-stone-600 text-[10px]">|</span>
+      <!-- Coins counter -->
+      <div class="flex items-center gap-1 bg-stone-950 px-2 py-0.5 rounded border border-amber-900/70 shadow-inner">
+        <span class="text-amber-400 text-xs leading-none">🪙</span>
+        <span id="uiCoins" class="text-amber-300 font-pixel text-[9px]">450</span>
+        <span class="text-amber-500/80 text-[8px] font-pixel">MON</span>
+      </div>
+    </div>
+
+    <!-- Top Action Buttons -->
+    <div class="flex items-center gap-1">
+      <button id="btnVault" class="text-[9px] px-1.5 py-1 rounded bg-stone-800 border border-amber-600 font-pixel text-amber-300 active:scale-95 shadow">
+        🏮VAULT
+      </button>
+      <button id="btnOpenManual" class="text-[9px] px-1.5 py-1 rounded bg-stone-800 border border-emerald-600 font-pixel text-emerald-300 active:scale-95 shadow">
+        📜GUIDE
+      </button>
+      <button id="btnSaveLoad" class="text-[9px] px-1.5 py-1 rounded bg-stone-800 border border-stone-600 font-pixel text-stone-200 active:scale-95 shadow">
+        💾DATA
+      </button>
+      <button id="btnGod" class="text-[9px] px-1.5 py-1 rounded bg-purple-950 border border-purple-500 font-pixel text-purple-200 active:scale-95 shadow">
+        ⚡GOD
+      </button>
+      <button id="btnSound" class="text-xs px-1.5 py-1 rounded bg-stone-800 border border-stone-600 active:scale-95 text-stone-300">
+        🔊
+      </button>
+    </div>
+  </header>
+
+  <!-- ================================================================= -->
+  <!-- NAVIGATION TABS -->
+  <!-- ================================================================= -->
+  <div class="px-2 py-1 bg-stone-900/80 border-b border-stone-800 flex items-center justify-between shrink-0 text-[9px] font-pixel z-20">
+    <div class="flex items-center gap-1">
+      <button id="tabWorkshop" class="px-2.5 py-1 rounded font-bold bg-amber-600 text-stone-950 transition-all shadow">
+        🪴 WORKSHOP
+      </button>
+      <button id="tabStorefront" class="px-2.5 py-1 rounded bg-stone-800 text-stone-400 hover:text-stone-200 border border-stone-700 transition-all shadow">
+        🏪 STORE (4)
+      </button>
+    </div>
+
+    <div class="flex items-center gap-1">
+      <!-- Auto Care toggle button -->
+      <button id="btnToggleAutoCare" class="px-1.5 py-1 rounded border text-[8px] font-pixel transition-all bg-stone-800 text-stone-400 border-stone-700 active:scale-95">
+        🤖 AUTO: OFF
+      </button>
+      <button id="btnShop" class="px-1.5 py-1 rounded bg-stone-800 border border-stone-700 text-amber-300 active:scale-95">
+        🏺 DECOR
+      </button>
+      <button id="btnUpgradeModal" class="px-1.5 py-1 rounded bg-stone-800 border border-stone-700 text-emerald-300 active:scale-95">
+        🛠️ TECH
+      </button>
+      <button id="btnCatalog" class="px-1.5 py-1 rounded bg-stone-800 border border-stone-700 text-sky-300 active:scale-95">
+        📖 STYLES
+      </button>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- WORKSHOP VIEW (512x512 High-Res Pixel Art Screen) -->
+  <!-- ================================================================= -->
+  <main id="viewWorkshop" class="flex-1 flex flex-col justify-between overflow-hidden relative">
+
+    <!-- Active Pot Slots Selector -->
+    <div class="px-2 pt-1 flex items-center justify-between text-[8px] font-pixel z-10 shrink-0">
+      <div class="flex items-center gap-1" id="slotButtonsContainer"></div>
+      <div id="activeTreeNameBadge" class="text-stone-300 truncate max-w-[170px] font-sans text-[11px] font-medium text-right">
+        --
+      </div>
+    </div>
+
+    <!-- 512x512 Native Retro Pixel Canvas Display -->
+    <div class="flex-1 flex items-center justify-center p-1 relative overflow-hidden min-h-0">
+      <div class="relative w-full max-w-[360px] aspect-square rounded-lg border-2 border-stone-800 shadow-2xl bg-black overflow-hidden flex items-center justify-center">
+        <!-- Internal 512x512 pixel grid, rendered crisp with nearest neighbor -->
+        <canvas id="pixelCanvas" width="512" height="512" class="pixel-canvas w-full h-full block cursor-pointer"></canvas>
+        
+        <!-- Live In-Canvas Zen Score Badge (Always Visible on Screen) -->
+        <div class="absolute top-2 left-2 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-md border border-amber-500/80 shadow-lg flex items-center gap-1.5 pointer-events-none z-10">
+          <span class="text-[10px]">✨</span>
+          <div class="flex flex-col">
+            <span class="text-[7px] font-pixel text-stone-400 uppercase tracking-wider">ZEN SCORE</span>
+            <div class="flex items-baseline gap-1">
+              <span id="canvasZenScore" class="font-pixel text-[12px] text-amber-300 font-bold">50</span>
+              <span class="text-[8px] font-pixel text-stone-500">/100</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Overlay Hint -->
+        <div id="tapPruneHint" class="absolute bottom-2 left-2 bg-black/80 backdrop-blur-sm text-[8px] font-pixel text-stone-300 px-2 py-0.5 rounded border border-stone-700/80 pointer-events-none">
+          ✂️ TAP CANOPY TO PRUNE
+        </div>
+
+        <!-- Floating Notification -->
+        <div id="floatMessage" class="absolute top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-stone-950 font-pixel text-[9px] px-3 py-1 rounded shadow-lg pointer-events-none opacity-0 transition-opacity duration-300 text-center z-20 whitespace-nowrap">
+          --
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Bench Readout (With Zen Harmony & Stat Metrics) -->
+    <div class="px-2 py-1 bg-stone-900/80 border-t border-stone-800 shrink-0 z-10">
+      <div class="grid grid-cols-5 gap-1 text-center text-[7.5px] font-pixel">
+        <div class="bg-stone-950 p-1 rounded border border-stone-800">
+          <div class="text-stone-500">ZEN RATING</div>
+          <div id="statZen" class="text-amber-300 text-[9.5px] mt-0.5">50/100</div>
+        </div>
+        <div class="bg-stone-950 p-1 rounded border border-stone-800">
+          <div class="text-stone-500">STAGE / AGE</div>
+          <div id="statGrowth" class="text-emerald-400 text-[9.5px] mt-0.5">25%</div>
+        </div>
+        <div class="bg-stone-950 p-1 rounded border border-stone-800">
+          <div class="text-stone-500">MOISTURE</div>
+          <div id="statMoisture" class="text-sky-400 text-[9.5px] mt-0.5">70%</div>
+        </div>
+        <div class="bg-stone-950 p-1 rounded border border-stone-800">
+          <div class="text-stone-500">TRUNK FORM</div>
+          <div id="statCurves" class="text-amber-400 text-[9.5px] mt-0.5 truncate">Natural</div>
+        </div>
+        <div class="bg-stone-950 p-1 rounded border border-stone-800">
+          <div class="text-stone-500">EST. VALUE</div>
+          <div id="statValue" class="text-yellow-300 text-[9.5px] mt-0.5">380 🪙</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workshop Control Pad -->
+    <div class="px-2 py-1.5 bg-stone-900 border-t border-stone-800 flex items-center justify-between gap-1.5 shrink-0 z-10 pb-[calc(var(--sab)+6px)]">
+      <button id="btnWater" class="flex-1 py-2 px-1 bg-sky-950 hover:bg-sky-900 border border-sky-600 rounded text-sky-200 font-pixel text-[9px] active:scale-95 flex items-center justify-center gap-1 shadow">
+        💧 WATER
+      </button>
+      <button id="btnPrune" class="flex-1 py-2 px-1 bg-emerald-950 hover:bg-emerald-900 border border-emerald-600 rounded text-emerald-200 font-pixel text-[9px] active:scale-95 flex items-center justify-center gap-1 shadow">
+        ✂️ PRUNE
+      </button>
+      <button id="btnWire" class="flex-1 py-2 px-1 bg-amber-950 hover:bg-amber-900 border border-amber-600 rounded text-amber-200 font-pixel text-[9px] active:scale-95 flex items-center justify-center gap-1 shadow">
+        🎋 WIRE
+      </button>
+      <button id="btnSendVault" class="py-2 px-2 bg-stone-800 hover:bg-stone-700 border border-amber-500 rounded text-amber-300 font-pixel text-[9px] active:scale-95 shadow" title="Send to Master Vault">
+        🏮
+      </button>
+      <button id="btnMoveToStore" class="flex-1 py-2 px-1 bg-violet-950 hover:bg-violet-900 border border-violet-500 rounded text-violet-200 font-pixel text-[9px] active:scale-95 flex items-center justify-center gap-1 shadow">
+        🏪 STAGE
+      </button>
+    </div>
+  </main>
+
+  <!-- ================================================================= -->
+  <!-- STOREFRONT VIEW (4 Display Stands Mode) -->
+  <!-- ================================================================= -->
+  <main id="viewStorefront" class="flex-1 flex flex-col justify-between overflow-hidden relative hidden bg-stone-950 pb-[calc(var(--sab)+6px)]">
+    <div class="px-3 pt-2 pb-1 bg-stone-900/70 border-b border-stone-800 flex items-center justify-between shrink-0">
+      <div>
+        <div class="text-[10px] font-pixel text-amber-400">TOKONOMA GALLERY SHOP</div>
+        <div class="text-[10px] text-stone-400">Collectors pay exponential fortunes for 90-100 Zen trees.</div>
+      </div>
+      <div id="storeTrafficIndicator" class="text-[8px] font-pixel text-emerald-400 animate-pulse">
+        👣 CLIENT BROWSING...
+      </div>
+    </div>
+
+    <!-- Active Visitor Event Banner -->
+    <div id="visitorBanner" class="px-3 py-1 bg-stone-900/90 border-b border-stone-800 text-[10px] flex items-center justify-between text-stone-300">
+      <div class="flex items-center gap-1.5 truncate">
+        <span id="visitorIcon" class="text-sm">🍵</span>
+        <span id="visitorName" class="font-bold text-amber-300">Tea Master Eizan</span>
+        <span id="visitorQuote" class="italic text-stone-400 text-[9px]">"Inspecting Stand #1..."</span>
+      </div>
+      <span id="visitorInterest" class="text-[8px] font-pixel text-emerald-400 shrink-0">INTEREST: HIGH</span>
+    </div>
+
+    <!-- 4 Interactive Stands Grid -->
+    <div class="flex-1 p-2 overflow-y-auto no-scrollbar grid grid-cols-2 gap-2" id="storePedestalsGrid"></div>
+
+    <div class="p-2 bg-stone-900 border-t border-stone-800 text-center shrink-0">
+      <div class="text-[9px] text-stone-400 font-sans">
+        💡 Multi-trunk configs, Redwoods, Birches & Willows command legendary connoisseur bids!
+      </div>
+    </div>
+  </main>
+
+  <!-- ================================================================= -->
+  <!-- MODALS -->
+  <!-- ================================================================= -->
+
+  <!-- Master's Vault / Storage Greenhouse Modal -->
+  <div id="modalVault" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 hidden">
+    <div class="bg-stone-900 border-2 border-amber-600 rounded-lg w-full max-w-sm max-h-[85dvh] p-3 text-stone-200 flex flex-col gap-2 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-stone-700 pb-1 shrink-0">
+        <div class="flex items-center gap-1.5">
+          <span class="text-amber-400 font-pixel text-[10px]">🏮 MASTER'S VAULT</span>
+          <span id="vaultCountBadge" class="text-[8px] font-pixel bg-stone-950 px-1.5 py-0.5 rounded text-amber-300 border border-stone-700">0/12</span>
+        </div>
+        <button id="closeVault" class="text-stone-400 font-bold px-2 py-0.5">✕</button>
+      </div>
+      <div class="text-[10px] text-stone-400 leading-tight shrink-0">
+        Safely store your prized specimen bonsai trees forever. They never wither here.
+      </div>
+      <div id="vaultListContainer" class="flex-1 overflow-y-auto space-y-2 pr-1 no-scrollbar"></div>
+    </div>
+  </div>
+
+  <!-- Manual & Gameplay Guide Modal -->
+  <div id="modalManual" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 hidden">
+    <div class="bg-stone-900 border-2 border-emerald-600 rounded-lg w-full max-w-sm max-h-[85dvh] p-3 text-stone-200 flex flex-col gap-2 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-stone-700 pb-1 shrink-0">
+        <span class="text-emerald-400 font-pixel text-[10px]">📜 MASTER'S BONSAI MANUAL</span>
+        <button id="closeManual" class="text-stone-400 font-bold px-2 py-0.5">✕</button>
+      </div>
+      <div class="flex-1 overflow-y-auto pr-1 no-scrollbar space-y-3 text-[11px] text-stone-300 leading-relaxed">
+        <div class="p-2 bg-stone-950 rounded border border-stone-800">
+          <div class="font-pixel text-[9px] text-amber-400 mb-1">🌲 1. EXPANDED MULTI-TRUNK & WOODLAND TREES</div>
+          <p>Coast Redwoods tower in Sankan and Yose-ue groves, White Paper Birches display distinctive silver-white bark with black horizontal lenticels, Ancient Oaks spread broad gnarls, and Weeping Willows drop tendrils!</p>
+        </div>
+        <div class="p-2 bg-stone-950 rounded border border-stone-800">
+          <div class="font-pixel text-[9px] text-yellow-400 mb-1">✨ 2. ZEN SCORE (1 TO 100)</div>
+          <p>The prominent Zen Score meter measures hydration balance, branch pruning harmony, and trunk styling. Reaching 90+ Zen unleashes massive exponential auction values!</p>
+        </div>
+        <div class="p-2 bg-stone-950 rounded border border-stone-800">
+          <div class="font-pixel text-[9px] text-sky-400 mb-1">🏺 3. POT CLAMPING & HARMONY</div>
+          <p>Trunk bases are engineered to fit strictly inside their pot width. Wide Nanban clay and Kurama rock slabs provide optimal spread for multi-trunk groves.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stage to Store Modal -->
+  <div id="modalStageTree" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 hidden">
+    <div class="bg-stone-900 border-2 border-violet-500 rounded-lg w-full max-w-xs p-3 text-stone-200 flex flex-col gap-2.5 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-stone-700 pb-1">
+        <span class="text-violet-300 font-pixel text-[10px]">🏪 STAGE FOR SALE</span>
+        <button id="closeStageTree" class="text-stone-400 font-bold px-2 py-0.5">✕</button>
+      </div>
+
+      <div class="bg-stone-950 p-2 rounded border border-stone-800 flex items-center gap-2">
+        <div class="text-2xl">🪴</div>
+        <div class="overflow-hidden">
+          <div id="stageTreeName" class="font-bold text-[11px] text-stone-200 truncate">Japanese Black Pine</div>
+          <div id="stageTreeStyle" class="text-[9px] text-stone-400 italic">Moyogi • Score: 85/100</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-1.5 text-center text-[9px] font-pixel">
+        <div class="bg-stone-950 p-1.5 rounded border border-stone-800">
+          <div class="text-stone-500">EST. VALUE</div>
+          <div id="stageEstValue" class="text-amber-400 text-[11px] mt-0.5">580 🪙</div>
+        </div>
+        <div class="bg-stone-950 p-1.5 rounded border border-stone-800">
+          <div class="text-stone-500">TARGET STAND</div>
+          <select id="stageStandSelect" class="bg-stone-900 border border-stone-700 text-stone-200 text-[10px] rounded mt-0.5 px-1 py-0.5 w-full text-center">
+            <option value="0">Stand #1</option>
+            <option value="1">Stand #2</option>
+            <option value="2">Stand #3</option>
+            <option value="3">Stand #4</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Set Custom Asking Price -->
+      <div class="bg-stone-950 p-2 rounded border border-stone-800 flex flex-col gap-1.5">
+        <div class="flex justify-between items-center">
+          <span class="text-[9px] font-pixel text-stone-400">ASKING PRICE:</span>
+          <span id="stagePriceDiffBadge" class="text-[8px] font-pixel text-emerald-400 bg-emerald-950/60 px-1 py-0.5 rounded border border-emerald-600">Fair Price</span>
+        </div>
+        
+        <div class="flex items-center justify-between gap-1">
+          <button id="btnStagePriceDec50" class="px-2 py-1 bg-stone-800 hover:bg-stone-700 text-stone-200 font-pixel text-[9px] rounded">-50</button>
+          <div class="flex-1 text-center font-pixel text-amber-300 text-[13px] bg-stone-900 py-1 rounded border border-stone-700 shadow-inner">
+            <span id="stageCustomPrice">580</span> 🪙
+          </div>
+          <button id="btnStagePriceInc50" class="px-2 py-1 bg-stone-800 hover:bg-stone-700 text-stone-200 font-pixel text-[9px] rounded">+50</button>
+        </div>
+
+        <div class="flex justify-between text-[8px] text-stone-400 font-pixel px-0.5">
+          <span id="stageBuyerInterest">Demand: Very High</span>
+          <span id="stageSpeedRating">⚡ Fast Sale</span>
+        </div>
+      </div>
+
+      <button id="btnConfirmStage" class="w-full py-2 bg-violet-900 hover:bg-violet-800 border border-violet-400 rounded text-stone-100 font-pixel text-[9px] active:scale-95 shadow font-bold">
+        DISPLAY ON STAND
+      </button>
+    </div>
+  </div>
+
+  <!-- Save / Load Modal -->
+  <div id="modalSaveLoad" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 hidden">
+    <div class="bg-stone-900 border-2 border-stone-600 rounded-lg w-full max-w-xs p-3 text-stone-200 flex flex-col gap-2.5 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-stone-700 pb-1">
+        <span class="text-amber-300 font-pixel text-[10px]">💾 NURSERY RECORDS</span>
+        <button id="closeSaveLoad" class="text-stone-400 font-bold px-2 py-0.5">✕</button>
+      </div>
+      <div class="text-[11px] text-stone-400 leading-tight">
+        Autosaves to local storage every 15s. Transfer save strings or backup easily.
+      </div>
+      <div class="grid grid-cols-2 gap-1.5 text-[9px] font-pixel">
+        <button id="btnManualSave" class="bg-emerald-950 hover:bg-emerald-900 border border-emerald-500 py-2 rounded text-emerald-200 active:scale-95">
+          💾 SAVE NOW
+        </button>
+        <button id="btnManualLoad" class="bg-sky-950 hover:bg-sky-900 border border-sky-500 py-2 rounded text-sky-200 active:scale-95">
+          📂 LOAD SAVE
+        </button>
+      </div>
+      <div class="border-t border-stone-800 pt-2 flex flex-col gap-1.5">
+        <label class="text-[9px] font-pixel text-stone-400">BACKUP / IMPORT CODE:</label>
+        <textarea id="saveCodeArea" rows="3" class="w-full bg-stone-950 border border-stone-700 rounded p-1 text-[10px] font-mono text-stone-300 select-all no-scrollbar" placeholder="Paste save code here..."></textarea>
+        <div class="flex gap-1.5 text-[8px] font-pixel">
+          <button id="btnCopySaveCode" class="flex-1 py-1.5 bg-stone-800 hover:bg-stone-700 border border-stone-600 rounded text-stone-300 active:scale-95">
+            📋 COPY CODE
+          </button>
+          <button id="btnApplySaveCode" class="flex-1 py-1.5 bg-amber-800 hover:bg-amber-700 border border-amber-500 rounded text-amber-200 active:scale-95">
+            📥 IMPORT
+          </button>
+        </div>
+      </div>
+      <div class="border-t border-stone-800 pt-1 text-center">
+        <button id="btnResetSave" class="text-[8px] font-pixel text-rose-400 hover:text-rose-300 py-1 underline">
+          ⚠️ RESET NURSERY TO NEW GAME
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- God Mode Modal -->
+  <div id="modalGod" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 hidden">
+    <div class="bg-stone-900 border-2 border-purple-500 rounded-lg w-full max-w-xs p-3 text-stone-200 flex flex-col gap-2 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-stone-700 pb-1">
+        <span class="text-purple-300 font-pixel text-[10px]">⚡ OMNIPOTENCE CONSOLE</span>
+        <button id="closeGod" class="text-stone-400 font-bold px-2 py-0.5">✕</button>
+      </div>
+      <div class="grid grid-cols-2 gap-1.5 text-[8px] font-pixel">
+        <button id="godCoins" class="bg-amber-950 border border-amber-500 py-1.5 rounded text-amber-200 active:scale-95">
+          +99,999 MON
+        </button>
+        <button id="godAge" class="bg-emerald-950 border border-emerald-500 py-1.5 rounded text-emerald-200 active:scale-95">
+          AGE TO 100%
+        </button>
+        <button id="godScore" class="bg-rose-950 border border-rose-500 py-1.5 rounded text-rose-200 active:scale-95">
+          SCORE: 100/100
+        </button>
+        <button id="godWater" class="bg-sky-950 border border-sky-500 py-1.5 rounded text-sky-200 active:scale-95">
+          WATER TO 100%
+        </button>
+        <button id="godUnlockSlots" class="bg-indigo-950 border border-indigo-500 py-1.5 rounded text-indigo-200 active:scale-95">
+          UNLOCK 4 SLOTS
+        </button>
+        <button id="godFillStore" class="bg-teal-950 border border-teal-500 py-1.5 rounded text-teal-200 active:scale-95">
+          FILL 4 STORE STANDS
+        </button>
+        <button id="godUnlockAll" class="col-span-2 bg-gradient-to-r from-purple-900 to-indigo-900 border border-purple-400 py-2 rounded text-stone-100 active:scale-95 font-bold">
+          UNLOCK ALL POTS, TABLES & TECH
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shop Modal (Pots, Tables, Scenery) -->
+  <div id="modalShop" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 hidden">
+    <div class="bg-stone-900 border-2 border-amber-600 rounded-lg w-full max-w-sm max-h-[85dvh] p-3 text-stone-200 flex flex-col gap-2 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-stone-700 pb-1 shrink-0">
+        <span class="text-amber-400 font-pixel text-[10px]">🏺 ARTISAN CERAMICS & DECOR</span>
+        <button id="closeShop" class="text-stone-400 font-bold px-2 py-0.5">✕</button>
+      </div>
+      <div class="flex gap-1 border-b border-stone-800 pb-1 text-[8px] font-pixel shrink-0">
+        <button id="subtabPots" class="px-2 py-1 bg-amber-600 text-stone-950 rounded font-bold">POTS (18)</button>
+        <button id="subtabTables" class="px-2 py-1 bg-stone-800 text-stone-400 rounded">TABLES (12)</button>
+        <button id="subtabBackdrops" class="px-2 py-1 bg-stone-800 text-stone-400 rounded">SCENERY (8)</button>
+      </div>
+      <div id="shopItemsContainer" class="flex-1 overflow-y-auto space-y-1.5 pr-1 no-scrollbar"></div>
+    </div>
+  </div>
+
+  <!-- Upgrades Modal -->
+  <div id="modalUpgrades" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 hidden">
+    <div class="bg-stone-900 border-2 border-emerald-600 rounded-lg w-full max-w-xs p-3 text-stone-200 flex flex-col gap-2 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-stone-700 pb-1">
+        <span class="text-emerald-400 font-pixel text-[10px]">🛠️ NURSERY UPGRADES</span>
+        <button id="closeUpgrades" class="text-stone-400 font-bold px-2 py-0.5">✕</button>
+      </div>
+      <div class="space-y-2 text-[10px]">
+        <div class="p-2 bg-stone-950 rounded border border-stone-800 flex justify-between items-center">
+          <div>
+            <div class="font-bold text-stone-200">🌿 Organic Fertilizer</div>
+            <div class="text-[9px] text-stone-400">+50% passive growth speed.</div>
+          </div>
+          <button id="buyFertilizer" class="px-2 py-1 bg-amber-600 text-stone-950 font-pixel text-[8px] rounded font-bold">350 🪙</button>
+        </div>
+        <div class="p-2 bg-stone-950 rounded border border-stone-800 flex justify-between items-center">
+          <div>
+            <div class="font-bold text-stone-200">💧 Clay Drip Irrigation</div>
+            <div class="text-[9px] text-stone-400">Maintains soil moisture passively.</div>
+          </div>
+          <button id="buyIrrigation" class="px-2 py-1 bg-amber-600 text-stone-950 font-pixel text-[8px] rounded font-bold">480 🪙</button>
+        </div>
+        <div class="p-2 bg-stone-950 rounded border border-stone-800 flex justify-between items-center">
+          <div>
+            <div class="font-bold text-stone-200">📜 Master's Calligraphy Scroll</div>
+            <div class="text-[9px] text-stone-400">+35% customer appraisal prices.</div>
+          </div>
+          <button id="buyScroll" class="px-2 py-1 bg-amber-600 text-stone-950 font-pixel text-[8px] rounded font-bold">750 🪙</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Catalog Modal (Styles & Configurations) -->
+  <div id="modalCatalog" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 hidden">
+    <div class="bg-stone-900 border-2 border-sky-600 rounded-lg w-full max-w-sm max-h-[85dvh] p-3 text-stone-200 flex flex-col gap-2 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-stone-700 pb-1 shrink-0">
+        <span class="text-sky-400 font-pixel text-[10px]">📖 CLASSICAL FORMS & EXOTICS</span>
+        <button id="closeCatalog" class="text-stone-400 font-bold px-2 py-0.5">✕</button>
+      </div>
+      <div class="text-[10px] text-stone-400 leading-tight shrink-0">
+        Choose a configuration (Single, Dual, Triple, Raft, Forest, or Weeper) for this bench (Cost: 50 🪙).
+      </div>
+      <div id="catalogList" class="flex-1 overflow-y-auto space-y-1.5 pr-1 no-scrollbar"></div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- GAME SCRIPTS -->
+  <!-- ================================================================= -->
+  <script>
+    /* =================================================================
+       1. RETRO WEB-AUDIO SYNTHESIZER
+    ================================================================= */
+    class RetroAudio {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      playTone(freq, type = 'sine', duration = 0.15, vol = 0.2) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {}
+      }
+      waterSound() {
+        this.playTone(480, 'sine', 0.08, 0.25);
+        setTimeout(() => this.playTone(640, 'triangle', 0.1, 0.2), 70);
+      }
+      pruneSnip() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(950, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(180, this.ctx.currentTime + 0.05);
+          gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.05);
+        } catch (e) {}
+      }
+      wireBend() {
+        this.playTone(180, 'sawtooth', 0.08, 0.18);
+        setTimeout(() => this.playTone(360, 'sawtooth', 0.12, 0.15), 60);
+        setTimeout(() => this.playTone(540, 'sawtooth', 0.15, 0.12), 120);
+      }
+      coinSound() {
+        this.playTone(987.77, 'sine', 0.08, 0.2);
+        setTimeout(() => this.playTone(1318.51, 'sine', 0.2, 0.25), 60);
+      }
+      sproutSound() {
+        this.playTone(523.25, 'triangle', 0.06, 0.15);
+        setTimeout(() => this.playTone(783.99, 'triangle', 0.12, 0.18), 50);
+      }
+      saleFanfare() {
+        [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 'triangle', 0.25, 0.2), i * 80);
+        });
+      }
+    }
+    const audio = new RetroAudio();
+
+    /* =================================================================
+       2. EXPANDED BOTANICAL STYLES & SPECIES DATABASE
+    ================================================================= */
+    const ALL_18_STYLES = [
+      { id: 'chokkan', name: 'Chokkan (Formal Upright)', config: 'single', desc: 'Strict vertical trunk with tapered bilateral branches.' },
+      { id: 'moyogi', name: 'Moyogi (Informal Upright)', config: 'single', desc: 'Dramatic organic curves, bends, and balanced apex.' },
+      { id: 'shakan', name: 'Shakan (Slanting)', config: 'single', desc: 'Angular trunk leaning gracefully with strong counterbalance.' },
+      { id: 'kengai', name: 'Kengai (Full Cascade)', config: 'cascade', desc: 'Bold downward plunge trailing past the pot rim.' },
+      { id: 'han_kengai', name: 'Han-Kengai (Semi-Cascade)', config: 'cascade', desc: 'Horizontal bough trailing across the pot lip.' },
+      { id: 'bunjin_gi', name: 'Bunjin-gi (Literati)', config: 'single', desc: 'Ultra-slender, eccentric sinuous trunk reaching for the sky.' },
+      { id: 'fukinagashi', name: 'Fukinagashi (Windswept)', config: 'single', desc: 'All limbs sheared in acute sweeps to one side.' },
+      { id: 'hokidachi', name: 'Hokidachi (Broom)', config: 'single', desc: 'Straight base splitting into a fine radial fan of twigs.' },
+      { id: 'sokan', name: 'Sokan (Dual Trunk Harmony)', config: 'dual', desc: 'Father and Son harmonious trunks sharing a single root.' },
+      { id: 'sankan', name: 'Sankan (Triple Trunk Triad)', config: 'triple', desc: 'Three proportional trunks representing Heaven, Earth, and Man.' },
+      { id: 'kabudachi', name: 'Kabudachi (Clump Multi-Trunk)', config: 'multi', desc: 'Multiple trunks radiating gracefully from a shared root.' },
+      { id: 'ikadabuki', name: 'Ikadabuki (Raft)', config: 'raft', desc: 'Fallen horizontal trunk shooting upright towers.' },
+      { id: 'sharimiki', name: 'Sharimiki (Driftwood)', config: 'single', desc: 'Bleached deadwood core wrapped by living wood grain.' },
+      { id: 'sekijoju', name: 'Sekijoju (Root-over-Rock)', config: 'rock', desc: 'Gnarled roots gripping craggy mountain stone.' },
+      { id: 'neagari', name: 'Neagari (Exposed Root)', config: 'single', desc: 'Stilt-like roots lifting the core trunk above the soil.' },
+      { id: 'yose_ue', name: 'Yose-ue (Forest Grove)', config: 'forest', desc: 'Natural woodland grove perfectly proportioned inside the pot.' },
+      { id: 'shidare', name: 'Shidare (Weeping Willow)', config: 'weeper', desc: 'Graceful pendulous tendrils cascading downwards.' },
+      { id: 'mugo_alpine', name: 'Mugo Alpine Dense Sankan', config: 'triple', desc: 'Compact high-altitude multi-trunk evergreen.' },
+      { id: 'redwood_cathedral', name: 'Redwood Cathedral Sankan', config: 'triple', desc: 'Towering prehistoric titans anchored in a triple-trunk grove.' },
+      { id: 'birch_grove', name: 'Paper Birch Sylvan Yose-ue', config: 'forest', desc: 'Elegant silver-white copse evoking northern birch groves.' },
+      { id: 'ancient_oak_sokan', name: 'Ancient Oak Twin Trunk', config: 'dual', desc: 'Centuries-old English oak splitting into massive spreading boughs.' },
+      { id: 'gokan_quintuple', name: 'Go-kan (Five Trunk Family)', config: 'multi', desc: 'Five sacred trunks rising in stepped hierarchical harmony.' }
+    ];
+
+    // EXPANDED TO 22 RICH BOTANICAL SPECIES (Redwoods, Oaks, Birches, Banyans, Larches, etc.)
+    const BOTANIC_SPECIES = [
+      { 
+        id: 'redwood', name: 'Coast Redwood (Sequoia)', type: 'conifer', preferredConfig: 'triple',
+        barkShadow: '#220b06', barkDark: '#45170d', barkMid: '#7a2d1d', barkLight: '#b04933', barkSpec: '#e28570',
+        folCol: '#0a2215', folMid: '#14452a', folLight: '#2c8556' 
+      },
+      { 
+        id: 'paper_birch', name: 'White Paper Birch (Betula)', type: 'broadleaf', preferredConfig: 'forest',
+        barkShadow: '#1e242a', barkDark: '#475569', barkMid: '#cbd5e1', barkLight: '#f8fafc', barkSpec: '#ffffff',
+        folCol: '#1a3a14', folMid: '#366e28', folLight: '#78b860' 
+      },
+      { 
+        id: 'english_oak', name: 'Ancient English Oak (Quercus)', type: 'broadleaf', preferredConfig: 'dual',
+        barkShadow: '#15100c', barkDark: '#2e231b', barkMid: '#523f33', barkLight: '#826856', barkSpec: '#bfa795',
+        folCol: '#142912', folMid: '#285423', folLight: '#599c4e' 
+      },
+      { 
+        id: 'chinese_banyan', name: 'Chinese Banyan (Ficus)', type: 'broadleaf', preferredConfig: 'multi',
+        barkShadow: '#191919', barkDark: '#333333', barkMid: '#595959', barkLight: '#8c8c8c', barkSpec: '#cccccc',
+        folCol: '#0a2414', folMid: '#164d2b', folLight: '#329657' 
+      },
+      { 
+        id: 'japanese_larch', name: 'Japanese Larch (Karamatsu)', type: 'conifer', preferredConfig: 'forest',
+        barkShadow: '#1f130b', barkDark: '#3d2516', barkMid: '#694129', barkLight: '#9e6744', barkSpec: '#d49b76',
+        folCol: '#123321', folMid: '#255e3e', folLight: '#50a876' 
+      },
+      { 
+        id: 'golden_hinoki', name: 'Golden Hinoki Cypress', type: 'conifer', preferredConfig: 'single',
+        barkShadow: '#241007', barkDark: '#472212', barkMid: '#753b22', barkLight: '#aa5c38', barkSpec: '#df8e67',
+        folCol: '#3d3806', folMid: '#786e11', folLight: '#d4c728' 
+      },
+      { 
+        id: 'chinese_elm', name: 'Chinese Elm (Ulmus)', type: 'broadleaf', preferredConfig: 'multi',
+        barkShadow: '#1a1410', barkDark: '#382a20', barkMid: '#5c4637', barkLight: '#8a6e5b', barkSpec: '#c2a795',
+        folCol: '#162e18', folMid: '#2c592f', folLight: '#5fa865' 
+      },
+      { 
+        id: 'mediterranean_olive', name: 'Ancient Olive (Olea)', type: 'broadleaf', preferredConfig: 'single',
+        barkShadow: '#1c1b18', barkDark: '#383630', barkMid: '#5e5a52', barkLight: '#8c877d', barkSpec: '#c4beb2',
+        folCol: '#1f2922', folMid: '#394d40', folLight: '#6d8c76' 
+      },
+      { 
+        id: 'juniper', name: 'Shimpaku Juniper', type: 'conifer', preferredConfig: 'single',
+        barkShadow: '#1c130e', barkDark: '#38251b', barkMid: '#634433', barkLight: '#946d54', barkSpec: '#cbb3a3',
+        folCol: '#0f241a', folMid: '#1b4733', folLight: '#327c5b' 
+      },
+      { 
+        id: 'pine', name: 'Black Pine (Kuromatsu)', type: 'conifer', preferredConfig: 'single',
+        barkShadow: '#120d0b', barkDark: '#261c17', barkMid: '#47362e', barkLight: '#755d51', barkSpec: '#af9789',
+        folCol: '#0a1d13', folMid: '#143825', folLight: '#2c6b48' 
+      },
+      { 
+        id: 'red_maple', name: 'Japanese Red Maple', type: 'broadleaf', preferredConfig: 'dual',
+        barkShadow: '#1e110b', barkDark: '#3b2116', barkMid: '#663928', barkLight: '#945b43', barkSpec: '#cda28e',
+        folCol: '#40070a', folMid: '#7a141a', folLight: '#d62839' 
+      },
+      { 
+        id: 'willow', name: 'Weeping Willow (Yanagi)', type: 'weeper', preferredConfig: 'weeper',
+        barkShadow: '#151b14', barkDark: '#2d382b', barkMid: '#4b5e48', barkLight: '#738e6e', barkSpec: '#b2ccad',
+        folCol: '#16381e', folMid: '#2d6a3b', folLight: '#70b25d' 
+      },
+      { 
+        id: 'mugo_pine', name: 'Alpine Dwarf Pine', type: 'conifer', preferredConfig: 'triple',
+        barkShadow: '#13110e', barkDark: '#27201a', barkMid: '#44382d', barkLight: '#6d5a49', barkSpec: '#9e8975',
+        folCol: '#091c12', folMid: '#123f26', folLight: '#29804d' 
+      },
+      { 
+        id: 'sakura', name: 'Cherry Blossom (Sakura)', type: 'flowering', preferredConfig: 'single',
+        barkShadow: '#19110d', barkDark: '#33231c', barkMid: '#5c3f33', barkLight: '#8a6555', barkSpec: '#c4a698',
+        folCol: '#8c3550', folMid: '#d46a89', folLight: '#fcd3e1' 
+      },
+      { 
+        id: 'shidare_sakura', name: 'Weeping Cherry (Shidarezakura)', type: 'weeper', preferredConfig: 'weeper',
+        barkShadow: '#18100d', barkDark: '#312019', barkMid: '#59392d', barkLight: '#875d4d', barkSpec: '#bf9280',
+        folCol: '#6b1836', folMid: '#b83b68', folLight: '#fca5c6' 
+      },
+      { 
+        id: 'wisteria', name: 'Japanese Wisteria', type: 'flowering', preferredConfig: 'single',
+        barkShadow: '#161111', barkDark: '#2d2222', barkMid: '#523f3e', barkLight: '#7e6462', barkSpec: '#b59e9c',
+        folCol: '#2a0845', folMid: '#5b188f', folLight: '#b368f0' 
+      },
+      { 
+        id: 'white_pine', name: 'White Pine (Goyomatsu)', type: 'conifer', preferredConfig: 'single',
+        barkShadow: '#14110e', barkDark: '#2b231c', barkMid: '#4d3f34', barkLight: '#7c6959', barkSpec: '#b4a292',
+        folCol: '#0d2121', folMid: '#1b3b3b', folLight: '#467a7d' 
+      },
+      { 
+        id: 'beech', name: 'Japanese Beech (Buna)', type: 'broadleaf', preferredConfig: 'forest',
+        barkShadow: '#1a1f24', barkDark: '#323d47', barkMid: '#526270', barkLight: '#7d93a6', barkSpec: '#c1d3e3',
+        folCol: '#1e3819', folMid: '#39632f', folLight: '#79ad68' 
+      },
+      { 
+        id: 'sugi', name: 'Japanese Cedar / Sugi', type: 'conifer', preferredConfig: 'triple',
+        barkShadow: '#210d06', barkDark: '#3d1c10', barkMid: '#693320', barkLight: '#995037', barkSpec: '#d1866e',
+        folCol: '#0e2617', folMid: '#1b4d30', folLight: '#3da669' 
+      },
+      { 
+        id: 'azalea', name: 'Satsuki Azalea', type: 'flowering', preferredConfig: 'single',
+        barkShadow: '#1a110d', barkDark: '#332119', barkMid: '#593b2e', barkLight: '#8a5e4b', barkSpec: '#c09886',
+        folCol: '#52031f', folMid: '#940536', folLight: '#f72585' 
+      },
+      { 
+        id: 'ginkgo', name: 'Maidenhair Ginkgo', type: 'broadleaf', preferredConfig: 'single',
+        barkShadow: '#1a130f', barkDark: '#36271e', barkMid: '#5e4536', barkLight: '#8c6c58', barkSpec: '#c3a896',
+        folCol: '#6d4808', folMid: '#b07a1c', folLight: '#fbb034' 
+      },
+      { 
+        id: 'zelkova', name: 'Japanese Zelkova', type: 'broadleaf', preferredConfig: 'single',
+        barkShadow: '#170e0a', barkDark: '#2e1c15', barkMid: '#54362a', barkLight: '#825845', barkSpec: '#bda08f',
+        folCol: '#122615', folMid: '#224a29', folLight: '#52b788' 
+      }
+    ];
+
+    // 18 ARTISANAL POTS
+    const EXPANDED_POTS = [
+      { id: 'celadon_oval', name: 'Celadon Glaze Oval', price: 0, owned: true, color: '#3d635a', trim: '#7ea496', shape: 'oval', depth: 'medium', widthBonus: 10 },
+      { id: 'akadama_rect', name: 'Unglazed Clay Rect', price: 0, owned: true, color: '#7f4f24', trim: '#b07d56', shape: 'rect', depth: 'medium', widthBonus: 20 },
+      { id: 'kurama_rock', name: 'Kurama Natural Rock Slab', price: 120, owned: false, color: '#3a3a3c', trim: '#737378', shape: 'rock', depth: 'slab', widthBonus: 50 },
+      { id: 'nanban_wide', name: 'Nanban Rough Clay Shallow Tray', price: 160, owned: false, color: '#4a3b32', trim: '#826a5b', shape: 'oval', depth: 'shallow', widthBonus: 55 },
+      { id: 'deep_cascade', name: 'Deep Hexagonal Cascade', price: 210, owned: false, color: '#2b2d42', trim: '#5c608a', shape: 'hex', depth: 'deep', widthBonus: -30 },
+      { id: 'vermilion_round', name: 'Vermilion Lacquer Drum', price: 280, owned: false, color: '#9e2a2b', trim: '#e63946', shape: 'oval', depth: 'medium', widthBonus: 15 },
+      { id: 'tokoname_drum', name: 'Tokoname Riveted Pot', price: 340, owned: false, color: '#582f0e', trim: '#935824', shape: 'rect', depth: 'medium', widthBonus: 25 },
+      { id: 'forest_slab_grey', name: 'Aged Granite Forest Tray', price: 420, owned: false, color: '#43464b', trim: '#9aa0a6', shape: 'rock', depth: 'slab', widthBonus: 65 },
+      { id: 'hagi_white', name: 'Hagi Crackled White Clay', price: 480, owned: false, color: '#cfc4b6', trim: '#ffffff', shape: 'oval', depth: 'shallow', widthBonus: 15 },
+      { id: 'bizen_flame', name: 'Bizen Woodfired Flame Pot', price: 560, owned: false, color: '#4a2810', trim: '#b05d24', shape: 'rect', depth: 'medium', widthBonus: 30 },
+      { id: 'kyoto_indigo', name: 'Kyoto Royal Indigo Celadon', price: 650, owned: false, color: '#1a2a44', trim: '#3b82f6', shape: 'oval', depth: 'medium', widthBonus: 20 },
+      { id: 'shigaraki_coarse', name: 'Shigaraki Coarse Sand Pot', price: 720, owned: false, color: '#574838', trim: '#d1bca4', shape: 'rect', depth: 'medium', widthBonus: 35 },
+      { id: 'dragon_charcoal', name: 'Dragon Kiln Charcoal Basin', price: 820, owned: false, color: '#1f1f23', trim: '#4a4d57', shape: 'rect', depth: 'medium', widthBonus: 25 },
+      { id: 'mountain_copper', name: 'Weathered Copper Patina Tray', price: 950, owned: false, color: '#234943', trim: '#45b09e', shape: 'oval', depth: 'shallow', widthBonus: 40 },
+      { id: 'cliff_cascade_oct', name: 'Aged Slate High Cascade Pot', price: 1100, owned: false, color: '#272a2e', trim: '#545b63', shape: 'hex', depth: 'deep', widthBonus: -25 },
+      { id: 'kyoto_crackle_plum', name: 'Kyoto Plum Blossom Crackle', price: 1250, owned: false, color: '#542338', trim: '#e879a9', shape: 'oval', depth: 'medium', widthBonus: 20 },
+      { id: 'kintsugi_gold', name: 'Kintsugi Gold Seam Slab', price: 1600, owned: false, color: '#1c1b1a', trim: '#e5b83b', shape: 'rock', depth: 'slab', widthBonus: 45 },
+      { id: 'emperors_jade', name: "Imperial Jadeite Octagon", price: 2200, owned: false, color: '#134e4a', trim: '#34d399', shape: 'hex', depth: 'deep', widthBonus: 10 }
+    ];
+
+    // 12 HANDCRAFTED WOODEN DISPLAY TABLES (SHOKU)
+    const WOODEN_TABLES = [
+      { id: 'hinoki', name: 'Hinoki Cypress Stand', price: 0, owned: true, woodCol: '#b08968', trimCol: '#7f5539' },
+      { id: 'ebony', name: 'Polished Black Lacquer', price: 180, owned: false, woodCol: '#1a1a1a', trimCol: '#3d3d3d' },
+      { id: 'rosewood', name: 'Carved Red Rosewood', price: 280, owned: false, woodCol: '#580812', trimCol: '#8b1322' },
+      { id: 'bamboo_slat', name: 'Braided Bamboo Mat', price: 390, owned: false, woodCol: '#93a277', trimCol: '#586b47' },
+      { id: 'shou_sugi_ban', name: 'Charred Shou Sugi Ban Wood', price: 520, owned: false, woodCol: '#1c1917', trimCol: '#44403c' },
+      { id: 'driftwood_root', name: 'Carved Burl Root Stand', price: 640, owned: false, woodCol: '#4b382a', trimCol: '#2d1e13' },
+      { id: 'mountain_slab_shoku', name: 'Low Floating Teak Slab', price: 780, owned: false, woodCol: '#5a4332', trimCol: '#38281d' },
+      { id: 'gold_leaf_shoku', name: 'Gilded Kyoto Lacquer Stand', price: 950, owned: false, woodCol: '#27221f', trimCol: '#d97706' },
+      { id: 'weathered_teak', name: 'Aged Mountain Teak Stand', price: 1100, owned: false, woodCol: '#6b4f3b', trimCol: '#3f2c1d' },
+      { id: 'palace_cinnabar', name: 'Imperial Cinnabar Altar', price: 1350, owned: false, woodCol: '#7f1d1d', trimCol: '#fca5a5' },
+      { id: 'kyoto_creek_stone', name: 'Polished River Basalt Slab', price: 1600, owned: false, woodCol: '#292524', trimCol: '#78716c' },
+      { id: 'imperial_shoji', name: 'Latticed Cedar Altar Stand', price: 1950, owned: false, woodCol: '#854d0e', trimCol: '#fef08a' }
+    ];
+
+    const SCENIC_BACKDROPS = [
+      { id: 'misty_mountains', name: 'Misty Mountains Dawn', price: 0, owned: true, skyTop: '#162032', skyMid: '#334155', skyBot: '#64748b', hasSun: true, sunCol: '#fde047', particle: 'mist' },
+      { id: 'shoji_sunset', name: 'Warm Shoji Twilight', price: 180, owned: false, skyTop: '#3b0d06', skyMid: '#7c2d12', skyBot: '#b45309', hasSun: true, sunCol: '#ea580c', particle: 'warmth' },
+      { id: 'zen_bamboo', name: 'Bamboo Forest Grove', price: 290, owned: false, skyTop: '#042f2e', skyMid: '#065f46', skyBot: '#059669', hasSun: false, sunCol: '', particle: 'bamboo' },
+      { id: 'moonlit_stars', name: 'Midnight Celestial Stars', price: 420, owned: false, skyTop: '#020617', skyMid: '#0b1329', skyBot: '#1e293b', hasSun: true, sunCol: '#f8fafc', particle: 'stars' },
+      { id: 'sakura_breeze', name: 'Cherry Blossom Twilight', price: 580, owned: false, skyTop: '#4a044e', skyMid: '#701a75', skyBot: '#be185d', hasSun: true, sunCol: '#fbcfe8', particle: 'petals' },
+      { id: 'autumn_momiji', name: 'Autumn Scarlet Foliage Glow', price: 720, owned: false, skyTop: '#451a03', skyMid: '#9a3412', skyBot: '#ea580c', hasSun: true, sunCol: '#fde047', particle: 'momiji' },
+      { id: 'fuji_snow', name: 'Winter Snow at Mount Fuji', price: 880, owned: false, skyTop: '#1e293b', skyMid: '#475569', skyBot: '#94a3b8', hasSun: true, sunCol: '#ffffff', particle: 'snow' },
+      { id: 'zen_monastery', name: 'Temple Garden Starlight', price: 1050, owned: false, skyTop: '#09090b', skyMid: '#18181b', skyBot: '#27272a', hasSun: true, sunCol: '#fbbf24', particle: 'stars' }
+    ];
+
+    /* =================================================================
+       3. GLOBAL GAME STATE
+    ================================================================= */
+    const state = {
+      coins: 450,
+      unlockedSlots: 2,
+      activeSlotIndex: 0,
+      autoCareEnabled: false,
+      view: 'workshop',
+      currentTable: WOODEN_TABLES[0],
+      currentBackdrop: SCENIC_BACKDROPS[0],
+      upgrades: {
+        fertilizer: false,
+        irrigation: false,
+        scroll: false
+      },
+      nurserySlots: [null, null, null, null],
+      storefrontSlots: [null, null, null, null],
+      vault: [],
+      stagedTreeData: null
+    };
+
+    /* =================================================================
+       4. PROCEDURAL BONSAI MODEL (Preserving Generator Geometry)
+    ================================================================= */
+    class ProceduralBonsai {
+      constructor(styleIndex = 0, speciesId = 'redwood', potId = 'nanban_wide') {
+        this.id = 'tree_' + Math.random().toString(36).substr(2, 9);
+        this.style = ALL_18_STYLES[styleIndex] || ALL_18_STYLES[0];
+        this.species = BOTANIC_SPECIES.find(s => s.id === speciesId) || BOTANIC_SPECIES[0];
+        this.pot = EXPANDED_POTS.find(p => p.id === potId) || EXPANDED_POTS[0];
+        
+        this.growth = 15;
+        this.moisture = 75;
+        this.pruneCount = 0;
+        this.wireCount = 0;
+        this.score = 50;
+        this.value = 180;
+        this.isGodRated = false;
+        this.bendTension = (Math.random() - 0.5) * 16;
+
+        this.branches = [];
+        this.foliageClusters = [];
+        this.weepingTendrils = [];
+        this.generatePixelStructure();
+        this.calculateScore();
+      }
+
+      generatePixelStructure() {
+        this.branches = [];
+        this.foliageClusters = [];
+        this.weepingTendrils = [];
+
+        let rootX = 256;
+        let rootY = 414;
+        this.potX = 256;
+        this.potY = 422;
+        
+        const bonusW = this.pot.widthBonus || 0;
+        this.potW = 175 + bonusW;
+        this.potH = 48;
+
+        if (this.pot.depth === 'deep') {
+          this.potW = 120 + bonusW;
+          this.potH = 82;
+          this.potY = 404;
+          rootY = 398;
+        } else if (this.pot.depth === 'shallow' || this.pot.depth === 'slab') {
+          this.potW = 205 + bonusW;
+          this.potH = 30;
+          this.potY = 428;
+          rootY = 422;
+        }
+
+        const safeMargin = 18;
+        const minPotX = this.potX - (this.potW / 2) + safeMargin;
+        const maxPotX = this.potX + (this.potW / 2) - safeMargin;
+
+        const sId = this.style.id;
+        const bWire = this.wireCount * 6 + this.bendTension;
+
+        const addSegmentedBranch = (pStart, pEnd, w1, w2, startG, endG, isJin = false, isRoot = false, depth = 3, maxDisplace = 28) => {
+          let pts = [pStart, pEnd];
+          
+          for (let step = 0; step < depth; step++) {
+            let nextPts = [pts[0]];
+            const scale = Math.pow(0.72, step) * maxDisplace;
+            
+            for (let i = 0; i < pts.length - 1; i++) {
+              const pA = pts[i];
+              const pB = pts[i + 1];
+              const midX = (pA.x + pB.x) / 2;
+              const midY = (pA.y + pB.y) / 2;
+              
+              const dx = pB.x - pA.x;
+              const dy = pB.y - pA.y;
+              const len = Math.hypot(dx, dy) || 1;
+              const perpX = -dy / len;
+              const perpY = dx / len;
+              
+              const dir = ((i + step) % 2 === 0 ? 1 : -1);
+              const jitter = dir * (scale * (0.65 + Math.random() * 0.7));
+
+              nextPts.push({
+                x: Math.round(midX + perpX * jitter),
+                y: Math.round(midY + perpY * jitter)
+              });
+              nextPts.push(pB);
+            }
+            pts = nextPts;
+          }
+
+          const count = pts.length - 1;
+          for (let i = 0; i < count; i++) {
+            const pA = pts[i];
+            const pB = pts[i + 1];
+            const tA = i / count;
+            const tB = (i + 1) / count;
+            
+            this.branches.push({
+              x1: Math.round(pA.x),
+              y1: Math.round(pA.y),
+              x2: Math.round(pB.x),
+              y2: Math.round(pB.y),
+              w1: w1 + (w2 - w1) * tA,
+              w2: w1 + (w2 - w1) * tB,
+              growthReq: startG + (endG - startG) * tA,
+              growthFull: startG + (endG - startG) * tB,
+              isJin,
+              isRoot
+            });
+          }
+
+          return pts[pts.length - 1];
+        };
+
+        const addCanopyPad = (x, y, r, minG, fullG) => {
+          this.foliageClusters.push({
+            x: Math.round(x),
+            y: Math.round(y),
+            maxR: Math.round(r),
+            r: Math.round(r),
+            minGrowth: minG,
+            fullGrowth: fullG
+          });
+
+          if (this.species.type === 'weeper' || sId === 'shidare') {
+            const dropCount = Math.floor(r / 6) + 3;
+            for (let i = 0; i < dropCount; i++) {
+              const offsetX = (i - dropCount / 2) * (r * 0.45);
+              const dropLen = 25 + Math.random() * 45;
+              this.weepingTendrils.push({
+                x: Math.round(x + offsetX),
+                startY: Math.round(y + 4),
+                length: Math.round(dropLen),
+                minGrowth: minG + 8
+              });
+            }
+          }
+        };
+
+        const addRoots = (rx, ry, span = 32) => {
+          const leftBound = Math.max(minPotX, rx - span);
+          const rightBound = Math.min(maxPotX, rx + span);
+
+          addSegmentedBranch({ x: rx - 3, y: ry }, { x: leftBound, y: ry + 6 }, 13, 3.5, 0, 18, false, true, 2, 8);
+          addSegmentedBranch({ x: rx + 3, y: ry }, { x: rightBound, y: ry + 6 }, 12, 3, 0, 18, false, true, 2, 8);
+          addSegmentedBranch({ x: rx - 6, y: ry + 2 }, { x: rx - 16, y: ry + 7 }, 8, 2.5, 0, 15, false, true, 1, 4);
+          addSegmentedBranch({ x: rx + 6, y: ry + 2 }, { x: rx + 16, y: ry + 7 }, 7, 2.5, 0, 15, false, true, 1, 4);
+        };
+
+        /* -------------------------------------------------------------
+           STYLE 1: CHOKKAN (FORMAL UPRIGHT)
+        ------------------------------------------------------------- */
+        if (sId === 'chokkan') {
+          addRoots(rootX, rootY, 32);
+          const pApex = { x: rootX, y: 110 };
+          addSegmentedBranch({ x: rootX, y: rootY }, pApex, 24, 4.5, 0, 55, false, false, 1, 2);
+
+          const f1L = addSegmentedBranch({ x: rootX, y: 330 }, { x: rootX - 110, y: 345 }, 8.5, 2.5, 20, 42, false, false, 1, 4);
+          addCanopyPad(f1L.x, f1L.y, 28, 38, 70);
+
+          const f1R = addSegmentedBranch({ x: rootX, y: 290 }, { x: rootX + 110, y: 300 }, 8, 2.5, 26, 48, false, false, 1, 4);
+          addCanopyPad(f1R.x, f1R.y, 27, 44, 76);
+
+          const f2L = addSegmentedBranch({ x: rootX, y: 230 }, { x: rootX - 95, y: 240 }, 6.5, 2, 38, 58, false, false, 1, 4);
+          addCanopyPad(f2L.x, f2L.y, 24, 52, 82);
+
+          const f2R = addSegmentedBranch({ x: rootX, y: 180 }, { x: rootX + 85, y: 188 }, 5.5, 2, 48, 68, false, false, 1, 4);
+          addCanopyPad(f2R.x, f2R.y, 22, 62, 88);
+
+          addCanopyPad(pApex.x, pApex.y - 6, 32, 55, 95);
+        }
+        /* -------------------------------------------------------------
+           STYLE 16 & 20: YOSE-UE / BIRCH GROVE (FOREST WOODLAND)
+        ------------------------------------------------------------- */
+        else if (sId === 'yose_ue' || sId === 'birch_grove') {
+          const usableW = maxPotX - minPotX;
+          const forestTrees = [
+            { rx: 0.50, y: 95, w1: 13, w2: 3.5, startG: 0, endG: 50, lean: 0, padR: 28 },      // Patriarch
+            { rx: 0.38, y: 135, w1: 9.5, w2: 2.8, startG: 8, endG: 55, lean: -6, padR: 24 },    // Left Elder
+            { rx: 0.62, y: 145, w1: 9, w2: 2.5, startG: 12, endG: 60, lean: 7, padR: 23 },     // Right Elder
+            { rx: 0.24, y: 180, w1: 7, w2: 2, startG: 18, endG: 66, lean: -10, padR: 20 },     // Mid Left
+            { rx: 0.76, y: 190, w1: 6.5, w2: 2, startG: 22, endG: 70, lean: 11, padR: 19 },    // Mid Right
+            { rx: 0.12, y: 230, w1: 5.5, w2: 1.5, startG: 28, endG: 78, lean: -12, padR: 17 },  // Edge Left
+            { rx: 0.88, y: 240, w1: 5, w2: 1.5, startG: 34, endG: 82, lean: 12, padR: 16 }     // Edge Right
+          ];
+
+          forestTrees.forEach(t => {
+            const trunkBaseX = Math.round(minPotX + t.rx * usableW);
+            addRoots(trunkBaseX, rootY, 14);
+
+            const basePt = { x: trunkBaseX, y: rootY };
+            const apexPt = { x: trunkBaseX + t.lean + (bWire * 0.1), y: t.y };
+            
+            const tip = addSegmentedBranch(basePt, apexPt, t.w1, t.w2, t.startG, t.endG, false, false, 2, 8);
+            addCanopyPad(tip.x, tip.y - 4, t.padR, t.endG - 6, t.endG + 16);
+
+            if (t.w1 >= 9) {
+              const sideDir = t.lean <= 0 ? 1 : -1;
+              const sideTip = addSegmentedBranch(
+                { x: trunkBaseX, y: t.y + 60 },
+                { x: trunkBaseX + (sideDir * 36), y: t.y + 70 },
+                4, 1.5, t.startG + 15, t.endG + 10, false, false, 1, 4
+              );
+              addCanopyPad(sideTip.x, sideTip.y, 16, t.startG + 25, t.endG + 15);
+            }
+          });
+        }
+        /* -------------------------------------------------------------
+           STYLE 10 & 18 & 19: SANKAN & REDWOOD CATHEDRAL (TRIPLE TRUNK)
+        ------------------------------------------------------------- */
+        else if (sId === 'sankan' || sId === 'mugo_alpine' || sId === 'redwood_cathedral') {
+          addRoots(rootX, rootY, 34);
+          
+          // Main Father Trunk
+          const pApexM = addSegmentedBranch(
+            { x: rootX, y: rootY },
+            { x: rootX - 10 + bWire, y: 100 },
+            20, 5, 0, 52, false, false, 2, 20
+          );
+          addCanopyPad(pApexM.x, pApexM.y - 6, 34, 50, 92);
+
+          // Mother Trunk (Right)
+          const pApexR = addSegmentedBranch(
+            { x: rootX + 8, y: rootY },
+            { x: rootX + 75 + bWire * 0.5, y: 155 },
+            13, 3.8, 12, 58, false, false, 2, 18
+          );
+          addCanopyPad(pApexR.x, pApexR.y - 6, 27, 55, 90);
+
+          // Child Trunk (Left)
+          const pApexL = addSegmentedBranch(
+            { x: rootX - 8, y: rootY },
+            { x: rootX - 68 + bWire * 0.5, y: 210 },
+            10, 3, 20, 68, false, false, 2, 16
+          );
+          addCanopyPad(pApexL.x, pApexL.y - 6, 23, 60, 92);
+        }
+        /* -------------------------------------------------------------
+           STYLE 17: SHIDARE (WEEPING WILLOW)
+        ------------------------------------------------------------- */
+        else if (sId === 'shidare') {
+          addRoots(rootX, rootY, 30);
+          const pFork = addSegmentedBranch({ x: rootX, y: rootY }, { x: rootX + bWire * 0.5, y: 220 }, 22, 12, 0, 35, false, false, 2, 16);
+
+          const willowBoughs = [-85, -45, 0, 45, 85];
+          willowBoughs.forEach((bx, idx) => {
+            const archTip = addSegmentedBranch(
+              pFork,
+              { x: rootX + bx * 1.5, y: 140 + Math.abs(bx) * 0.4 },
+              8, 2.5, 30 + idx * 6, 68 + idx * 4, false, false, 2, 22
+            );
+            addCanopyPad(archTip.x, archTip.y, 25, 60, 95);
+          });
+        }
+        /* -------------------------------------------------------------
+           STYLE 9 & 21: SOKAN & ANCIENT OAK (DUAL TRUNK HARMONY)
+        ------------------------------------------------------------- */
+        else if (sId === 'sokan' || sId === 'ancient_oak_sokan') {
+          addRoots(rootX, rootY, 34);
+          const pM1 = { x: rootX - 45 + bWire, y: 275 };
+          const pMApex = { x: rootX - 24 + bWire, y: 125 };
+          addSegmentedBranch({ x: rootX - 8, y: rootY }, pM1, 21, 12, 0, 26, false, false, 2, 24);
+          addSegmentedBranch(pM1, pMApex, 12, 5.5, 26, 55, false, false, 2, 22);
+          addCanopyPad(pMApex.x, pMApex.y - 6, 36, 55, 92);
+
+          const pC1 = { x: rootX + 55, y: 295 };
+          const pCApex = { x: rootX + 78, y: 185 };
+          addSegmentedBranch({ x: rootX + 8, y: rootY }, pC1, 14, 7.5, 15, 36, false, false, 2, 20);
+          addSegmentedBranch(pC1, pCApex, 7.5, 4, 36, 60, false, false, 2, 18);
+          addCanopyPad(pCApex.x, pCApex.y - 6, 30, 58, 92);
+
+          const tipL = addSegmentedBranch(pM1, { x: rootX - 120, y: 245 }, 8, 2.5, 32, 60, false, false, 2, 18);
+          addCanopyPad(tipL.x, tipL.y, 28, 52, 85);
+        }
+        /* -------------------------------------------------------------
+           STYLE 11 & 22: KABUDACHI & GO-KAN (FIVE-TRUNK / MULTI CLUMP)
+        ------------------------------------------------------------- */
+        else if (sId === 'kabudachi' || sId === 'gokan_quintuple') {
+          addRoots(rootX, rootY, 38);
+          const clumpOffsets = [-75, -40, 0, 40, 75];
+          clumpOffsets.forEach((dx, idx) => {
+            const h = 125 + Math.abs(dx) * 0.95;
+            const tip = addSegmentedBranch(
+              { x: rootX, y: rootY },
+              { x: rootX + dx * 1.35, y: h },
+              10, 2.8, 5 + idx * 7, 60 + idx * 6, false, false, 2, 24
+            );
+            addCanopyPad(tip.x, tip.y - 6, 25, 48 + idx * 6, 88 + idx * 2);
+          });
+        }
+        /* -------------------------------------------------------------
+           STYLE 12: IKADABUKI (RAFT)
+        ------------------------------------------------------------- */
+        else if (sId === 'ikadabuki') {
+          const raftStartX = minPotX + 10;
+          const raftEndX = maxPotX - 10;
+          addSegmentedBranch({ x: raftStartX, y: rootY }, { x: raftEndX, y: rootY }, 18, 12, 0, 25, false, false, 2, 10);
+          
+          const raftTrunks = [0.15, 0.38, 0.65, 0.88];
+          raftTrunks.forEach((rt, idx) => {
+            const tx = raftStartX + (raftEndX - raftStartX) * rt;
+            const topY = 165 + (idx % 2 === 0 ? 0 : 25);
+            const tip = addSegmentedBranch(
+              { x: tx, y: rootY },
+              { x: tx + (idx % 2 === 0 ? 16 : -16), y: topY },
+              8, 2.5, 20 + idx * 9, 64 + idx * 7, false, false, 2, 20
+            );
+            addCanopyPad(tip.x, tip.y - 6, 25, 55 + idx * 7, 90 + idx * 2);
+          });
+        }
+        /* -------------------------------------------------------------
+           STYLE 2: MOYOGI (INFORMAL UPRIGHT)
+        ------------------------------------------------------------- */
+        else if (sId === 'moyogi') {
+          addRoots(rootX, rootY, 32);
+          const p0 = { x: rootX, y: rootY };
+          const p1 = { x: rootX + 60 + bWire, y: rootY - 75 };
+          const p2 = { x: rootX - 40 - bWire * 0.6, y: rootY - 165 };
+          const p3 = { x: rootX + 42 + bWire * 0.4, y: rootY - 235 };
+          const pApex = { x: rootX - 10 + bWire * 0.2, y: 120 };
+
+          addSegmentedBranch(p0, p1, 24, 18, 0, 20, false, false, 2, 32);
+          addSegmentedBranch(p1, p2, 18, 12, 20, 38, false, false, 2, 28);
+          addSegmentedBranch(p2, p3, 12, 8, 38, 55, false, false, 2, 22);
+          addSegmentedBranch(p3, pApex, 8, 4, 55, 70, false, false, 2, 18);
+
+          const tipR = addSegmentedBranch(p1, { x: rootX + 135, y: rootY - 95 }, 9, 3, 22, 48, false, false, 2, 20);
+          addCanopyPad(tipR.x, tipR.y, 32, 42, 75);
+
+          const tipL = addSegmentedBranch(p2, { x: rootX - 135, y: rootY - 175 }, 8, 2.5, 38, 60, false, false, 2, 18);
+          addCanopyPad(tipL.x, tipL.y, 29, 52, 82);
+
+          const tipB = addSegmentedBranch(p3, { x: rootX + 90, y: rootY - 245 }, 6, 2, 50, 72, false, false, 2, 15);
+          addCanopyPad(tipB.x, tipB.y, 25, 62, 88);
+
+          addCanopyPad(pApex.x, pApex.y - 6, 36, 62, 95);
+        }
+        /* -------------------------------------------------------------
+           STYLE 3: SHAKAN (SLANTING)
+        ------------------------------------------------------------- */
+        else if (sId === 'shakan') {
+          addRoots(rootX, rootY, 32);
+          const p0 = { x: rootX, y: rootY };
+          const p1 = { x: rootX + 85 + bWire, y: 290 };
+          const pApex = { x: rootX + 190 + bWire * 1.3, y: 135 };
+
+          addSegmentedBranch(p0, p1, 24, 14, 0, 28, false, false, 2, 30);
+          addSegmentedBranch(p1, pApex, 14, 5, 28, 55, false, false, 2, 26);
+
+          const cb = addSegmentedBranch(p1, { x: rootX - 100, y: 315 }, 9, 2.5, 24, 48, false, false, 2, 20);
+          addCanopyPad(cb.x, cb.y, 30, 42, 75);
+
+          const tipR = addSegmentedBranch({ x: rootX + 135, y: 215 }, { x: rootX + 230, y: 230 }, 7, 2, 40, 66, false, false, 2, 18);
+          addCanopyPad(tipR.x, tipR.y, 28, 56, 88);
+
+          addCanopyPad(pApex.x, pApex.y - 6, 34, 58, 95);
+        }
+        /* -------------------------------------------------------------
+           STYLE 4: KENGAI (CASCADE)
+        ------------------------------------------------------------- */
+        else if (sId === 'kengai') {
+          addRoots(rootX, rootY, 26);
+          const p0 = { x: rootX, y: rootY };
+          const pKnee = { x: rootX + 80 + bWire, y: 345 };
+          const pPlunge1 = { x: rootX + 135 + bWire, y: 420 };
+          const pPlunge2 = { x: rootX + 80 + bWire, y: 505 };
+
+          addSegmentedBranch(p0, pKnee, 22, 14, 0, 24, false, false, 2, 24);
+          addCanopyPad(pKnee.x + 10, pKnee.y - 20, 26, 25, 55);
+
+          addSegmentedBranch(pKnee, pPlunge1, 14, 9, 24, 52, false, false, 2, 26);
+          addSegmentedBranch(pPlunge1, pPlunge2, 9, 4, 52, 78, false, false, 2, 24);
+
+          const sideB = addSegmentedBranch(pPlunge1, { x: rootX + 170, y: 440 }, 7, 2, 42, 68, false, false, 2, 16);
+          addCanopyPad(sideB.x, sideB.y, 27, 52, 82);
+
+          addCanopyPad(pPlunge2.x, pPlunge2.y, 32, 70, 98);
+        }
+        /* -------------------------------------------------------------
+           STYLE 5: HAN-KENGAI (SEMI-CASCADE)
+        ------------------------------------------------------------- */
+        else if (sId === 'han_kengai') {
+          addRoots(rootX, rootY, 28);
+          const p0 = { x: rootX, y: rootY };
+          const p1 = { x: rootX + 90 + bWire, y: 375 };
+          const p2 = { x: rootX + 210 + bWire, y: 416 };
+
+          addSegmentedBranch(p0, p1, 20, 11, 0, 28, false, false, 2, 24);
+          addSegmentedBranch(p1, p2, 11, 4.5, 28, 65, false, false, 2, 24);
+          addCanopyPad(p2.x, p2.y, 32, 55, 88);
+
+          const tipL = addSegmentedBranch(p1, { x: rootX - 85, y: 350 }, 7, 2, 30, 55, false, false, 2, 18);
+          addCanopyPad(tipL.x, tipL.y, 26, 48, 82);
+        }
+        /* -------------------------------------------------------------
+           STYLE 6: BUNJIN-GI (LITERATI)
+        ------------------------------------------------------------- */
+        else if (sId === 'bunjin_gi') {
+          addRoots(rootX, rootY, 24);
+          const p0 = { x: rootX, y: rootY };
+          const p1 = { x: rootX - 50, y: 315 };
+          const p2 = { x: rootX + 60 + bWire, y: 225 };
+          const p3 = { x: rootX - 38 + bWire * 0.5, y: 135 };
+          const p4 = { x: rootX + 28 + bWire * 0.2, y: 68 };
+
+          addSegmentedBranch(p0, p1, 12, 8, 0, 20, false, false, 2, 24);
+          addSegmentedBranch(p1, p2, 8, 6, 20, 40, false, false, 2, 24);
+          addSegmentedBranch(p2, p3, 6, 4, 40, 60, false, false, 2, 22);
+          addSegmentedBranch(p3, p4, 4, 2.5, 60, 78, false, false, 2, 18);
+
+          const tip = addSegmentedBranch(p4, { x: rootX + 85, y: 88 }, 3.5, 1.5, 65, 88, false, false, 2, 15);
+          addCanopyPad(tip.x, tip.y, 22, 70, 95);
+          addCanopyPad(p4.x, p4.y - 4, 26, 68, 96);
+        }
+        /* -------------------------------------------------------------
+           OTHER CLASSICAL STYLES (Fukinagashi, Hokidachi, Sharimiki, etc.)
+        ------------------------------------------------------------- */
+        else {
+          addRoots(rootX, rootY, 30);
+          const p0 = { x: rootX, y: rootY };
+          const pMid = { x: rootX + 45 + bWire, y: 260 };
+          const pApex = { x: rootX - 15 + bWire * 0.5, y: 120 };
+
+          addSegmentedBranch(p0, pMid, 22, 12, 0, 32, false, false, 2, 24);
+          addSegmentedBranch(pMid, pApex, 12, 4.5, 32, 65, false, false, 2, 22);
+
+          const tipL = addSegmentedBranch(pMid, { x: rootX - 110, y: 230 }, 7, 2, 35, 60, false, false, 2, 18);
+          addCanopyPad(tipL.x, tipL.y, 28, 50, 85);
+
+          const tipR = addSegmentedBranch(pMid, { x: rootX + 110, y: 200 }, 7, 2, 40, 66, false, false, 2, 18);
+          addCanopyPad(tipR.x, tipR.y, 27, 56, 88);
+
+          addCanopyPad(pApex.x, pApex.y - 6, 35, 58, 95);
+        }
+      }
+
+      calculateScore() {
+        if (this.isGodRated) {
+          this.score = 100;
+          this.value = 5888;
+          return;
+        }
+
+        let base = 44;
+        base += Math.round((this.growth / 100) * 36);
+        base += Math.min(14, this.pruneCount * 2.8);
+        base += Math.min(12, this.wireCount * 2.4);
+
+        if (this.moisture < 20 || this.moisture > 95) base -= 15;
+        else if (this.moisture >= 40 && this.moisture <= 80) base += 5;
+
+        if (this.pot.price > 200) base += 6;
+        if (this.pot.id === 'kintsugi_gold' || this.pot.id === 'emperors_jade') base += 10;
+
+        this.score = Math.max(15, Math.min(100, Math.round(base)));
+
+        // EXPONENTIAL ZEN ECONOMY MULTIPLIER
+        const zenFrac = this.score / 100;
+        let exponentialMultiplier = 1.0;
+        
+        if (this.score >= 95) {
+          exponentialMultiplier = 5.0 + Math.pow((this.score - 94), 1.8) * 0.9;
+        } else if (this.score >= 85) {
+          exponentialMultiplier = 2.2 + (this.score - 85) * 0.28;
+        } else if (this.score >= 70) {
+          exponentialMultiplier = 1.4 + (this.score - 70) * 0.05;
+        }
+
+        let val = Math.round((this.score * 2.8 + (this.growth * 1.5)) * exponentialMultiplier);
+
+        // Species rarity bonus (Weepers, Redwoods, Birches, Oaks & Multi-trunk groves command premiums)
+        if (this.species.type === 'weeper') val = Math.round(val * 1.4);
+        if (this.style.config === 'forest' || this.style.config === 'triple' || this.style.config === 'multi') val = Math.round(val * 1.45);
+        if (this.species.id === 'redwood' || this.species.id === 'paper_birch' || this.species.id === 'english_oak') val = Math.round(val * 1.25);
+
+        if (state.upgrades.scroll) val = Math.round(val * 1.35);
+        if (this.pot.id === 'kintsugi_gold') val = Math.round(val * 1.5);
+        if (this.pot.id === 'emperors_jade') val = Math.round(val * 1.6);
+
+        this.value = Math.max(80, val);
+      }
+
+      grow(dt) {
+        const drainRate = state.upgrades.irrigation ? 0.22 : 0.65;
+        this.moisture = Math.max(0, this.moisture - drainRate * dt);
+
+        if (this.moisture > 15 && this.growth < 100) {
+          const boost = state.upgrades.fertilizer ? 1.5 : 1.0;
+          const oldFloor = Math.floor(this.growth / 15);
+          this.growth = Math.min(100, this.growth + boost * 0.95 * dt);
+          const newFloor = Math.floor(this.growth / 15);
+          if (newFloor > oldFloor && Math.random() < 0.3) {
+            audio.sproutSound();
+          }
+        }
+
+        this.calculateScore();
+      }
+    }
+
+    /* =================================================================
+       5. ADVANCED DITHERED PIXEL SHADING ENGINE
+    ================================================================= */
+    const canvas = document.getElementById('pixelCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    let pixelWindParticles = [];
+    for (let i = 0; i < 40; i++) {
+      pixelWindParticles.push({
+        x: Math.random() * 512,
+        y: Math.random() * 512,
+        vx: 0.5 + Math.random() * 0.9,
+        vy: 0.3 + Math.random() * 0.6,
+        size: Math.random() > 0.4 ? 3 : 2
+      });
+    }
+
+    let incensePixelSmoke = [];
+    for (let i = 0; i < 22; i++) {
+      incensePixelSmoke.push({
+        x: 436 + (Math.random() - 0.5) * 8,
+        y: 446 - Math.random() * 110,
+        alpha: 0.15 + Math.random() * 0.35,
+        vy: 0.4 + Math.random() * 0.6
+      });
+    }
+
+    function drawPixelLine(x0, y0, x1, y1, color, width = 1) {
+      x0 = Math.round(x0);
+      y0 = Math.round(y0);
+      x1 = Math.round(x1);
+      y1 = Math.round(y1);
+
+      const dx = Math.abs(x1 - x0);
+      const dy = Math.abs(y1 - y0);
+      const sx = x0 < x1 ? 1 : -1;
+      const sy = y0 < y1 ? 1 : -1;
+      let err = dx - dy;
+
+      ctx.fillStyle = color;
+      const half = Math.floor(width / 2);
+
+      while (true) {
+        ctx.fillRect(x0 - half, y0 - half, Math.max(1, width), Math.max(1, width));
+        if (x0 === x1 && y0 === y1) break;
+        const e2 = 2 * err;
+        if (e2 > -dy) {
+          err -= dy;
+          x0 += sx;
+        }
+        if (e2 < dx) {
+          err += dx;
+          y0 += sy;
+        }
+      }
+    }
+
+    function drawDitheredWoodSegment(x0, y0, x1, y1, width, species, isJin = false) {
+      x0 = Math.round(x0);
+      y0 = Math.round(y0);
+      x1 = Math.round(x1);
+      y1 = Math.round(y1);
+
+      const dx = x1 - x0;
+      const dy = y1 - y0;
+      const len = Math.hypot(dx, dy) || 1;
+      
+      const nx = -dy / len;
+      const ny = dx / len;
+
+      const steps = Math.ceil(len);
+      const halfW = width / 2;
+
+      const cShadow = isJin ? '#475569' : species.barkShadow;
+      const cDark   = isJin ? '#94a3b8' : species.barkDark;
+      const cMid    = isJin ? '#cbd5e1' : species.barkMid;
+      const cLight  = isJin ? '#f1f5f9' : species.barkLight;
+      const cSpec   = isJin ? '#ffffff' : species.barkSpec;
+
+      for (let s = 0; s <= steps; s++) {
+        const t = s / steps;
+        const cx = x0 + dx * t;
+        const cy = y0 + dy * t;
+
+        for (let w = -halfW; w <= halfW; w += 1) {
+          const px = Math.round(cx + nx * w);
+          const py = Math.round(cy + ny * w);
+
+          const normW = w / (halfW || 1);
+
+          let color;
+          if (normW < -0.65) {
+            color = (px + py) % 2 === 0 ? cSpec : cLight;
+          } else if (normW < 0.05) {
+            const dither = (px % 2 === 0 && py % 2 === 0);
+            color = dither ? cLight : cMid;
+          } else if (normW < 0.65) {
+            const dither = ((px + py) % 2 === 0);
+            color = dither ? cMid : cDark;
+          } else {
+            const dither = (px % 2 === 0 && py % 2 === 0);
+            color = dither ? cDark : cShadow;
+          }
+
+          ctx.fillStyle = color;
+          ctx.fillRect(px, py, 1, 1);
+        }
+      }
+    }
+
+    function drawPixelFoliageCluster(cx, cy, r, darkCol, midCol, lightCol) {
+      cx = Math.round(cx);
+      cy = Math.round(cy);
+      r = Math.max(4, Math.round(r));
+
+      // Underbelly shadow
+      ctx.fillStyle = darkCol;
+      for (let y = -r; y <= r; y++) {
+        for (let x = -r; x <= r; x++) {
+          if (x * x + y * y <= r * r) {
+            ctx.fillRect(cx + x, cy + y + 3, 1, 1);
+          }
+        }
+      }
+
+      // Midtone body
+      ctx.fillStyle = midCol;
+      const midR = Math.max(3, r - 2);
+      for (let y = -midR; y <= midR; y++) {
+        for (let x = -midR; x <= midR; x++) {
+          if (x * x + y * y <= midR * midR) {
+            if (x * x + y * y > (midR - 3) * (midR - 3) && (x + y) % 2 === 0) continue;
+            ctx.fillRect(cx + x, cy + y, 1, 1);
+          }
+        }
+      }
+
+      // Specular foliage crown
+      ctx.fillStyle = lightCol;
+      const lightR = Math.max(2, Math.round(r * 0.52));
+      for (let y = -lightR; y <= lightR; y++) {
+        for (let x = -lightR; x <= lightR; x++) {
+          if (x * x + y * y <= lightR * lightR) {
+            if ((x + y) % 2 === 0 && x * x + y * y > (lightR - 2) * (lightR - 2)) continue;
+            ctx.fillRect(cx + x - 2, cy + y - 3, 1, 1);
+          }
+        }
+      }
+    }
+
+    function renderPixelArt() {
+      const activeTree = state.nurserySlots[state.activeSlotIndex];
+      const bd = state.currentBackdrop;
+
+      // 1. Backdrop Sky
+      const bands = 24;
+      for (let i = 0; i < bands; i++) {
+        const t = i / bands;
+        ctx.fillStyle = t < 0.5 ? bd.skyTop : (bd.skyMid || bd.skyBot);
+        ctx.fillRect(0, i * 22, 512, 22);
+      }
+
+      // Celestial Sun / Moon
+      if (bd.hasSun) {
+        ctx.fillStyle = bd.sunCol + '44';
+        ctx.fillRect(380, 70, 64, 64);
+        ctx.fillStyle = bd.sunCol;
+        ctx.fillRect(388, 78, 48, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(396, 86, 16, 16);
+      }
+
+      // Mountain Ridges
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+      for (let x = 0; x < 512; x += 4) {
+        const h = Math.round(Math.sin(x * 0.015) * 32 + Math.cos(x * 0.008) * 44 + 260);
+        ctx.fillRect(x, h, 4, 512 - h);
+      }
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      for (let x = 0; x < 512; x += 3) {
+        const h = Math.round(Math.sin(x * 0.02 + 1.2) * 28 + Math.cos(x * 0.01) * 32 + 310);
+        ctx.fillRect(x, h, 3, 512 - h);
+      }
+
+      // Weather Particles
+      pixelWindParticles.forEach(p => {
+        p.x = (p.x + p.vx) % 512;
+        p.y = (p.y + p.vy) % 512;
+
+        if (bd.particle === 'petals') {
+          ctx.fillStyle = '#f4a6be';
+          ctx.fillRect(Math.round(p.x), Math.round(p.y), 3, 3);
+        } else if (bd.particle === 'momiji') {
+          ctx.fillStyle = '#ea580c';
+          ctx.fillRect(Math.round(p.x), Math.round(p.y), 4, 3);
+        } else if (bd.particle === 'snow') {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(Math.round(p.x), Math.round(p.y), 2, 2);
+        } else if (bd.particle === 'bamboo') {
+          ctx.fillStyle = '#52b788';
+          ctx.fillRect(Math.round(p.x), Math.round(p.y), 2, 5);
+        } else {
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+          ctx.fillRect(Math.round(p.x), Math.round(p.y), 2, 2);
+        }
+      });
+
+      // Wooden Display Stand
+      const tbl = state.currentTable;
+
+      ctx.fillStyle = tbl.woodCol;
+      ctx.fillRect(64, 454, 384, 16);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.fillRect(64, 454, 384, 2);
+      ctx.fillStyle = tbl.trimCol;
+      ctx.fillRect(64, 468, 384, 4);
+
+      // Curved legs
+      ctx.fillStyle = tbl.trimCol;
+      ctx.fillRect(80, 470, 24, 28);
+      ctx.fillRect(408, 470, 24, 28);
+      ctx.fillRect(130, 470, 252, 6);
+
+      // Tatami Floor Weave Base
+      ctx.fillStyle = '#292524';
+      ctx.fillRect(0, 498, 512, 14);
+      ctx.fillStyle = '#1c1917';
+      for (let x = 0; x < 512; x += 8) {
+        ctx.fillRect(x, 500, 4, 12);
+      }
+
+      // Incense Burner & Rising Smoke
+      ctx.fillStyle = '#57534e';
+      ctx.fillRect(444, 446, 14, 8);
+      ctx.fillStyle = '#eab308';
+      ctx.fillRect(450, 444, 2, 2);
+
+      incensePixelSmoke.forEach(s => {
+        s.y -= s.vy;
+        s.x += Math.sin(s.y * 0.05) * 0.3;
+        if (s.y < 340) {
+          s.y = 444;
+          s.x = 450 + (Math.random() - 0.5) * 6;
+        }
+        ctx.fillStyle = `rgba(220, 220, 220, ${s.alpha})`;
+        ctx.fillRect(Math.round(s.x), Math.round(s.y), 3, 3);
+      });
+
+      if (!activeTree) {
+        ctx.fillStyle = '#78716c';
+        ctx.font = '16px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('[ EMPTY BENCH ]', 256, 260);
+        ctx.fillText('Tap STYLES or VAULT', 256, 290);
+        return;
+      }
+
+      // Pot & Soil Geometry (Pots render BEFORE branches so roots sit safely INSIDE the soil)
+      const rootX = activeTree.potX;
+      const rootY = activeTree.potY - 8;
+      const pot = activeTree.pot;
+
+      // Drop shadow under pot
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+      ctx.fillRect(rootX - activeTree.potW / 2 + 8, activeTree.potY + activeTree.potH - 4, activeTree.potW - 16, 8);
+
+      // Ceramic Glazed Pot Body
+      ctx.fillStyle = pot.color;
+      if (pot.shape === 'oval') {
+        const pw = activeTree.potW;
+        const ph = activeTree.potH;
+        for (let y = 0; y < ph; y++) {
+          const stepW = Math.round(pw * (1 - Math.pow((y - ph / 2) / (ph / 2), 2) * 0.25));
+          ctx.fillRect(rootX - stepW / 2, activeTree.potY + y, stepW, 1);
+        }
+      } else if (pot.shape === 'rock') {
+        ctx.fillRect(rootX - activeTree.potW / 2, activeTree.potY + 8, activeTree.potW, activeTree.potH - 8);
+        ctx.fillRect(rootX - activeTree.potW / 2 + 12, activeTree.potY, activeTree.potW - 24, 8);
+        if (pot.id === 'kintsugi_gold') {
+          ctx.fillStyle = '#e5b83b';
+          drawPixelLine(rootX - 28, activeTree.potY + 12, rootX + 8, activeTree.potY + 2, '#e5b83b', 2);
+          drawPixelLine(rootX + 8, activeTree.potY + 2, rootX + 32, activeTree.potY + 14, '#e5b83b', 2);
+          ctx.fillStyle = pot.color;
+        }
+      } else {
+        ctx.fillRect(rootX - activeTree.potW / 2, activeTree.potY, activeTree.potW, activeTree.potH);
+      }
+
+      // Pot Lip Trim
+      ctx.fillStyle = pot.trim;
+      ctx.fillRect(rootX - activeTree.potW / 2 - 4, activeTree.potY - 6, activeTree.potW + 8, 6);
+
+      // Akadama Gravel Soil Bed
+      ctx.fillStyle = '#2b1b17';
+      ctx.fillRect(rootX - activeTree.potW / 2 + 4, activeTree.potY - 6, activeTree.potW - 8, 4);
+
+      // Velvet Moss Mounds (Spread to fit wide pots)
+      const mossMounds = [
+        { x: rootX - activeTree.potW * 0.22, y: activeTree.potY - 8, r: 16 },
+        { x: rootX + activeTree.potW * 0.22, y: activeTree.potY - 8, r: 15 },
+        { x: rootX, y: activeTree.potY - 10, r: 22 }
+      ];
+      mossMounds.forEach(m => {
+        ctx.fillStyle = '#1e4620';
+        for (let y = -m.r; y <= 0; y++) {
+          for (let x = -m.r; x <= m.r; x++) {
+            if (x * x + y * y <= m.r * m.r) {
+              ctx.fillRect(m.x + x, m.y + y, 1, 1);
+            }
+          }
+        }
+        ctx.fillStyle = '#40916c';
+        for (let x = -m.r + 4; x <= m.r - 4; x += 3) {
+          ctx.fillRect(m.x + x, m.y - 4, 2, 2);
+        }
+      });
+
+      // Rock feature for Root-over-Rock
+      if (activeTree.style.id === 'sekijoju') {
+        ctx.fillStyle = '#4b5563';
+        ctx.fillRect(rootX - 36, activeTree.potY - 56, 72, 52);
+        ctx.fillStyle = '#6b7280';
+        ctx.fillRect(rootX - 28, activeTree.potY - 52, 24, 20);
+      }
+
+      // Sprout shoot when very young
+      if (activeTree.growth < 15) {
+        ctx.fillStyle = '#52b788';
+        ctx.fillRect(rootX - 2, rootY - 12, 4, 12);
+        ctx.fillRect(rootX - 8, rootY - 18, 6, 4);
+        ctx.fillRect(rootX + 2, rootY - 18, 6, 4);
+      }
+
+      const curGrowth = activeTree.growth;
+
+      // Render branches with wood grain dither
+      activeTree.branches.forEach(b => {
+        if (curGrowth <= b.growthReq) return;
+
+        const frac = Math.min(1.0, Math.max(0.0, (curGrowth - b.growthReq) / (b.growthFull - b.growthReq)));
+        const targetX = b.x1 + (b.x2 - b.x1) * frac;
+        const targetY = b.y1 + (b.y2 - b.y1) * frac;
+
+        const matureWidthFactor = 0.55 + (curGrowth / 100) * 0.45;
+        const w = Math.max(2, Math.round(((b.w1 + b.w2) / 2) * matureWidthFactor));
+
+        drawDitheredWoodSegment(b.x1, b.y1, targetX, targetY, w, activeTree.species, b.isJin);
+
+        // Training wire accent
+        if (activeTree.wireCount > 0 && !b.isJin && !b.isRoot && frac >= 0.8) {
+          ctx.fillStyle = '#b45309';
+          const wx = Math.round(b.x1 + (targetX - b.x1) * 0.5);
+          const wy = Math.round(b.y1 + (targetY - b.y1) * 0.5);
+          ctx.fillRect(wx - 2, wy - 2, 4, 4);
+          ctx.fillStyle = '#f59e0b';
+          ctx.fillRect(wx - 1, wy - 1, 2, 2);
+        }
+      });
+
+      // Canopy Foliage Clusters
+      activeTree.foliageClusters.forEach(f => {
+        if (curGrowth <= f.minGrowth) return;
+
+        const folFrac = Math.min(1.0, (curGrowth - f.minGrowth) / Math.max(1, f.fullGrowth - f.minGrowth));
+        const effectiveR = Math.max(5, Math.round(f.r * folFrac));
+
+        drawPixelFoliageCluster(
+          f.x,
+          f.y,
+          effectiveR,
+          activeTree.species.folCol,
+          activeTree.species.folMid,
+          activeTree.species.folLight
+        );
+      });
+
+      // Weeping Willow & Weeping Cherry Cascading Tendrils
+      if (activeTree.weepingTendrils && activeTree.weepingTendrils.length > 0) {
+        activeTree.weepingTendrils.forEach(w => {
+          if (curGrowth <= w.minGrowth) return;
+          const dropFrac = Math.min(1.0, (curGrowth - w.minGrowth) / 35);
+          const currentLen = Math.round(w.length * dropFrac);
+
+          for (let y = 0; y < currentLen; y++) {
+            const sway = Math.sin((y + performance.now() * 0.003) * 0.15) * 1.5;
+            const px = Math.round(w.x + sway);
+            const py = Math.round(w.startY + y);
+            
+            // Dithered weeping vine beads
+            if (y % 3 === 0) {
+              ctx.fillStyle = activeTree.species.folLight;
+              ctx.fillRect(px - 1, py, 2, 2);
+            } else {
+              ctx.fillStyle = activeTree.species.folMid;
+              ctx.fillRect(px, py, 1, 1);
+            }
+          }
+        });
+      }
+    }
+
+    /* =================================================================
+       6. INTERACTION & DIRECT PRUNING
+    ================================================================= */
+    function showFloatMessage(text) {
+      const msg = document.getElementById('floatMessage');
+      msg.textContent = text;
+      msg.classList.remove('opacity-0');
+      clearTimeout(msg._timer);
+      msg._timer = setTimeout(() => {
+        msg.classList.add('opacity-0');
+      }, 1600);
+    }
+
+    canvas.addEventListener('click', (e) => {
+      const activeTree = state.nurserySlots[state.activeSlotIndex];
+      if (!activeTree) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const clickX = ((e.clientX - rect.left) / rect.width) * 512;
+      const clickY = ((e.clientY - rect.top) / rect.height) * 512;
+
+      let nearestIdx = -1;
+      let minDist = 50;
+
+      activeTree.foliageClusters.forEach((pad, i) => {
+        if (activeTree.growth <= pad.minGrowth) return;
+        const dist = Math.hypot(clickX - pad.x, clickY - pad.y);
+        if (dist < minDist) {
+          minDist = dist;
+          nearestIdx = i;
+        }
+      });
+
+      if (nearestIdx !== -1) {
+        const pad = activeTree.foliageClusters[nearestIdx];
+        pad.r = Math.max(8, pad.r - 4);
+        activeTree.pruneCount++;
+        activeTree.calculateScore();
+        audio.pruneSnip();
+        showFloatMessage(`Canopy Pruned! Zen: ${Math.round(activeTree.score)}/100`);
+        updateUI();
+        renderPixelArt();
+      }
+    });
+
+    document.getElementById('btnWater').addEventListener('click', () => {
+      const tree = state.nurserySlots[state.activeSlotIndex];
+      if (!tree) return;
+      tree.moisture = Math.min(100, tree.moisture + 25);
+      audio.waterSound();
+      showFloatMessage('Hydrated! Moisture replenished 💧');
+      updateUI();
+      renderPixelArt();
+    });
+
+    document.getElementById('btnPrune').addEventListener('click', () => {
+      const tree = state.nurserySlots[state.activeSlotIndex];
+      if (!tree) return;
+      tree.pruneCount++;
+      tree.calculateScore();
+      audio.pruneSnip();
+      showFloatMessage('Canopy Balanced with Shears ✂️');
+      updateUI();
+      renderPixelArt();
+    });
+
+    document.getElementById('btnWire').addEventListener('click', () => {
+      const tree = state.nurserySlots[state.activeSlotIndex];
+      if (!tree) return;
+      tree.wireCount++;
+      tree.bendTension += (Math.random() > 0.5 ? 6 : -6);
+      tree.generatePixelStructure();
+      tree.calculateScore();
+      audio.wireBend();
+      showFloatMessage('🎋 Copper Wire Adjusted & Bent!');
+      updateUI();
+      renderPixelArt();
+    });
+
+    /* =================================================================
+       7. ZEN MASTER AUTO-CARE TOGGLE
+    ================================================================= */
+    const btnToggleAutoCare = document.getElementById('btnToggleAutoCare');
+    btnToggleAutoCare.addEventListener('click', () => {
+      state.autoCareEnabled = !state.autoCareEnabled;
+      if (state.autoCareEnabled) {
+        btnToggleAutoCare.textContent = '🤖 AUTO: ON';
+        btnToggleAutoCare.className = 'px-1.5 py-1 rounded border text-[8px] font-pixel transition-all bg-emerald-950 text-emerald-300 border-emerald-500 active:scale-95';
+        showFloatMessage('Zen Auto-Care Activated! 🌿');
+      } else {
+        btnToggleAutoCare.textContent = '🤖 AUTO: OFF';
+        btnToggleAutoCare.className = 'px-1.5 py-1 rounded border text-[8px] font-pixel transition-all bg-stone-800 text-stone-400 border-stone-700 active:scale-95';
+        showFloatMessage('Auto-Care Paused.');
+      }
+    });
+
+    setInterval(() => {
+      if (!state.autoCareEnabled) return;
+
+      state.nurserySlots.forEach((tree) => {
+        if (!tree) return;
+        
+        if (tree.moisture < 45) {
+          tree.moisture = Math.min(100, tree.moisture + 25);
+        }
+
+        if (tree.growth > 30 && tree.pruneCount < 8 && Math.random() < 0.35) {
+          tree.pruneCount++;
+          tree.calculateScore();
+        }
+      });
+
+      if (state.view === 'workshop') {
+        updateUI();
+      }
+    }, 4000);
+
+    /* =================================================================
+       8. MASTER'S VAULT
+    ================================================================= */
+    const modalVault = document.getElementById('modalVault');
+    const vaultListContainer = document.getElementById('vaultListContainer');
+    const vaultCountBadge = document.getElementById('vaultCountBadge');
+
+    function renderVaultModal() {
+      vaultCountBadge.textContent = `${state.vault.length}/12`;
+      vaultListContainer.innerHTML = '';
+
+      if (state.vault.length === 0) {
+        vaultListContainer.innerHTML = `
+          <div class="p-6 text-center text-stone-500 font-pixel text-[9px]">
+            <div class="text-3xl mb-2">🏮</div>
+            VAULT EMPTY<br><br>
+            <span class="font-sans text-[11px] text-stone-400">
+              Tap the 🏮 button on your active workshop bench to preserve your favorite specimens here!
+            </span>
+          </div>
+        `;
+        return;
+      }
+
+      state.vault.forEach((tree, idx) => {
+        const item = document.createElement('div');
+        item.className = "p-2 bg-stone-950 border border-stone-800 rounded flex justify-between items-center text-[10px]";
+        item.innerHTML = `
+          <div class="overflow-hidden">
+            <div class="font-bold text-amber-300 font-pixel text-[9px] truncate">${tree.species.name}</div>
+            <div class="text-[9px] text-stone-400 italic">${tree.style.name.split(' ')[0]} • Age: ${Math.floor(tree.growth)}% • ${tree.score} Zen</div>
+            <div class="text-[8px] font-pixel text-yellow-500 mt-0.5">Value: ${tree.value} 🪙</div>
+          </div>
+          <div class="flex gap-1 shrink-0 ml-2 font-pixel text-[8px]">
+            <button data-action="takeout" data-index="${idx}" class="px-2 py-1.5 bg-amber-600 text-stone-950 font-bold rounded active:scale-95 shadow">
+              BENCH
+            </button>
+            <button data-action="release" data-index="${idx}" class="px-1.5 py-1.5 bg-rose-950 border border-rose-600 text-rose-300 rounded active:scale-95">
+              ✕
+            </button>
+          </div>
+        `;
+
+        item.querySelector('[data-action="takeout"]').addEventListener('click', () => {
+          const emptyBenchIdx = state.nurserySlots.findIndex((s, i) => i < state.unlockedSlots && s === null);
+          if (emptyBenchIdx === -1) {
+            showFloatMessage('All bench slots are full!');
+            return;
+          }
+
+          state.nurserySlots[emptyBenchIdx] = state.vault.splice(idx, 1)[0];
+          state.activeSlotIndex = emptyBenchIdx;
+          audio.sproutSound();
+          showFloatMessage(`Moved to Workbench P${emptyBenchIdx + 1}!`);
+          renderVaultModal();
+          updateSlotTabs();
+          updateUI();
+          renderPixelArt();
+        });
+
+        item.querySelector('[data-action="release"]').addEventListener('click', () => {
+          state.vault.splice(idx, 1);
+          renderVaultModal();
+          showFloatMessage('Removed from vault.');
+        });
+
+        vaultListContainer.appendChild(item);
+      });
+    }
+
+    document.getElementById('btnVault').addEventListener('click', () => {
+      renderVaultModal();
+      modalVault.classList.remove('hidden');
+    });
+    document.getElementById('closeVault').addEventListener('click', () => {
+      modalVault.classList.add('hidden');
+    });
+
+    document.getElementById('btnSendVault').addEventListener('click', () => {
+      const activeTree = state.nurserySlots[state.activeSlotIndex];
+      if (!activeTree) {
+        showFloatMessage('No tree on bench to store!');
+        return;
+      }
+      if (state.vault.length >= 12) {
+        showFloatMessage('Master Vault is full (12/12)!');
+        return;
+      }
+
+      state.vault.push(activeTree);
+      state.nurserySlots[state.activeSlotIndex] = null;
+      audio.coinSound();
+      showFloatMessage('Preserved in Master Vault 🏮');
+      updateSlotTabs();
+      updateUI();
+      renderPixelArt();
+    });
+
+    /* =================================================================
+       9. STAGING MODAL (Custom Asking Price Setup)
+    ================================================================= */
+    const modalStageTree = document.getElementById('modalStageTree');
+    let stagedCustomPrice = 0;
+
+    function updateStagingDemandPreview() {
+      if (!state.stagedTreeData) return;
+      const est = state.stagedTreeData.tree.value;
+      const price = stagedCustomPrice;
+      const ratio = price / Math.max(1, est);
+
+      const diffBadge = document.getElementById('stagePriceDiffBadge');
+      const interestSpan = document.getElementById('stageBuyerInterest');
+      const speedSpan = document.getElementById('stageSpeedRating');
+
+      if (ratio <= 0.85) {
+        diffBadge.textContent = 'Bargain Discount';
+        diffBadge.className = 'text-[8px] font-pixel text-emerald-400 bg-emerald-950/80 px-1 py-0.5 rounded border border-emerald-600';
+        interestSpan.textContent = 'Demand: Extreme';
+        speedSpan.textContent = '⚡ Lightning Sale';
+      } else if (ratio <= 1.15) {
+        diffBadge.textContent = 'Fair Market Price';
+        diffBadge.className = 'text-[8px] font-pixel text-sky-400 bg-sky-950/80 px-1 py-0.5 rounded border border-sky-600';
+        interestSpan.textContent = 'Demand: Steady';
+        speedSpan.textContent = '⏳ Normal Sale';
+      } else if (ratio <= 1.45) {
+        diffBadge.textContent = 'Connoisseur Markup';
+        diffBadge.className = 'text-[8px] font-pixel text-amber-400 bg-amber-950/80 px-1 py-0.5 rounded border border-amber-600';
+        interestSpan.textContent = 'Demand: Selective';
+        speedSpan.textContent = '🐢 Patient Collectors';
+      } else {
+        diffBadge.textContent = 'Masterpiece Premium';
+        diffBadge.className = 'text-[8px] font-pixel text-rose-400 bg-rose-950/80 px-1 py-0.5 rounded border border-rose-600';
+        interestSpan.textContent = 'Demand: Rare Elite';
+        speedSpan.textContent = '🍵 Tea Masters Only';
+      }
+
+      document.getElementById('stageCustomPrice').textContent = price;
+    }
+
+    document.getElementById('btnMoveToStore').addEventListener('click', () => {
+      const tree = state.nurserySlots[state.activeSlotIndex];
+      if (!tree) {
+        showFloatMessage('No tree on this bench!');
+        return;
+      }
+
+      const emptyStandIdx = state.storefrontSlots.findIndex(slot => slot === null);
+      if (emptyStandIdx === -1) {
+        showFloatMessage('All 4 display stands are full!');
+        return;
+      }
+
+      state.stagedTreeData = {
+        tree: tree,
+        benchIndex: state.activeSlotIndex
+      };
+      stagedCustomPrice = tree.value;
+
+      document.getElementById('stageTreeName').textContent = tree.species.name;
+      document.getElementById('stageTreeStyle').textContent = `${tree.style.name.split(' ')[0]} • Score: ${Math.round(tree.score)}/100`;
+      document.getElementById('stageEstValue').textContent = `${tree.value} 🪙`;
+      document.getElementById('stageStandSelect').value = emptyStandIdx;
+
+      updateStagingDemandPreview();
+      modalStageTree.classList.remove('hidden');
+    });
+
+    document.getElementById('closeStageTree').addEventListener('click', () => {
+      modalStageTree.classList.add('hidden');
+    });
+
+    document.getElementById('btnStagePriceInc50').addEventListener('click', () => {
+      stagedCustomPrice += 50;
+      audio.wireBend();
+      updateStagingDemandPreview();
+    });
+
+    document.getElementById('btnStagePriceDec50').addEventListener('click', () => {
+      stagedCustomPrice = Math.max(50, stagedCustomPrice - 50);
+      audio.wireBend();
+      updateStagingDemandPreview();
+    });
+
+    document.getElementById('btnConfirmStage').addEventListener('click', () => {
+      if (!state.stagedTreeData) return;
+      const targetStandIdx = parseInt(document.getElementById('stageStandSelect').value, 10);
+      
+      if (state.storefrontSlots[targetStandIdx] !== null) {
+        showFloatMessage(`Stand #${targetStandIdx + 1} is occupied!`);
+        return;
+      }
+
+      state.storefrontSlots[targetStandIdx] = {
+        tree: state.stagedTreeData.tree,
+        askingPrice: stagedCustomPrice
+      };
+      state.nurserySlots[state.stagedTreeData.benchIndex] = null;
+      state.stagedTreeData = null;
+
+      audio.saleFanfare();
+      modalStageTree.classList.add('hidden');
+      showFloatMessage(`Displayed on Stand #${targetStandIdx + 1} at ${stagedCustomPrice} MON!`);
+
+      updateSlotTabs();
+      renderStorefront();
+      updateUI();
+      renderPixelArt();
+    });
+
+    /* =================================================================
+       10. STOREFRONT & PEDESTALS (Customer Walk-In AI)
+    ================================================================= */
+    const CLIENT_PERSONAS = [
+      { name: 'Tea Master Eizan', icon: '🍵', quote: '"The balanced trunk tension embodies pure Wabi-Sabi nature."', taste: 'balanced' },
+      { name: 'Kyoto Antiques Broker', icon: '🎎', quote: '"Notice the organic grain and authentic pottery harmony."', taste: 'luxury' },
+      { name: 'Zen Monk Ryokan', icon: '🎋', quote: '"Like a pine enduring mountain wind, it stands proud."', taste: 'minimalist' },
+      { name: 'Imperial Estate Curator', icon: '🏯', quote: '"A rare specimen worthy of our grand palace pavilion."', taste: 'high_score' }
+    ];
+
+    function renderStorefront() {
+      const container = document.getElementById('storePedestalsGrid');
+      container.innerHTML = '';
+
+      state.storefrontSlots.forEach((slot, idx) => {
+        const card = document.createElement('div');
+        card.className = "bg-stone-900 border border-stone-800 rounded-lg p-2.5 flex flex-col justify-between shadow relative";
+
+        if (!slot) {
+          card.innerHTML = `
+            <div class="text-[9px] font-pixel text-stone-500 mb-1">STAND #${idx + 1}</div>
+            <div class="flex-1 flex flex-col items-center justify-center py-6 text-stone-600 text-center">
+              <div class="text-2xl mb-1">🪵</div>
+              <div class="text-[9px] font-pixel">EMPTY DISPLAY</div>
+              <div class="text-[9px] text-stone-500 mt-1">Stage a tree from workshop</div>
+            </div>
+          `;
+        } else {
+          const t = slot.tree;
+          const ratio = slot.askingPrice / Math.max(1, t.value);
+          let priceStatus = 'Normal';
+          let statusCol = 'text-sky-400';
+          if (ratio < 0.9) { priceStatus = 'Discount'; statusCol = 'text-emerald-400'; }
+          else if (ratio > 1.3) { priceStatus = 'High Markup'; statusCol = 'text-amber-400'; }
+
+          card.innerHTML = `
+            <div class="flex justify-between items-start border-b border-stone-800 pb-1">
+              <div>
+                <span class="text-[8px] font-pixel text-amber-400">STAND #${idx + 1}</span>
+                <div class="font-bold text-[11px] text-stone-200 truncate max-w-[110px]">${t.species.name}</div>
+                <div class="text-[9px] text-stone-400 italic">${t.style.name.split(' ')[0]}</div>
+              </div>
+              <span class="text-[9px] font-pixel bg-emerald-950 text-emerald-300 border border-emerald-600 px-1 py-0.5 rounded">${t.score} ZEN</span>
+            </div>
+
+            <div class="my-2 bg-stone-950 p-1.5 rounded border border-stone-800">
+              <div class="flex justify-between text-[8px] font-pixel text-stone-400 mb-0.5">
+                <span>EST: ${t.value} 🪙</span>
+                <span class="${statusCol}">${priceStatus}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-[8px] font-pixel text-stone-500">ASKING:</div>
+                  <div class="text-amber-300 font-pixel text-[11px]">${slot.askingPrice} 🪙</div>
+                </div>
+                <div class="flex items-center gap-1">
+                  <button data-action="price-down" data-index="${idx}" class="px-2 py-1 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded font-pixel text-[9px]">-50</button>
+                  <button data-action="price-up" data-index="${idx}" class="px-2 py-1 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded font-pixel text-[9px]">+50</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-1 text-[8px] font-pixel">
+              <button data-action="quicksell" data-index="${idx}" class="flex-1 py-1.5 bg-emerald-900/80 hover:bg-emerald-800 border border-emerald-500 text-emerald-200 rounded active:scale-95">
+                QUICK SELL
+              </button>
+              <button data-action="recall" data-index="${idx}" class="py-1.5 px-2 bg-stone-800 hover:bg-stone-700 border border-stone-600 text-stone-300 rounded active:scale-95">
+                RECALL
+              </button>
+            </div>
+          `;
+        }
+        container.appendChild(card);
+      });
+
+      container.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const act = btn.getAttribute('data-action');
+          const idx = parseInt(btn.getAttribute('data-index'), 10);
+          if (isNaN(idx)) return;
+          const slot = state.storefrontSlots[idx];
+          if (!slot) return;
+
+          if (act === 'price-up') {
+            slot.askingPrice += 50;
+            audio.wireBend();
+            renderStorefront();
+          } else if (act === 'price-down') {
+            slot.askingPrice = Math.max(50, slot.askingPrice - 50);
+            audio.wireBend();
+            renderStorefront();
+          } else if (act === 'recall') {
+            const emptyBenchIdx = state.nurserySlots.findIndex((s, i) => i < state.unlockedSlots && s === null);
+            if (emptyBenchIdx === -1) {
+              showFloatMessage('No empty workshop slots!');
+              return;
+            }
+            state.nurserySlots[emptyBenchIdx] = slot.tree;
+            state.storefrontSlots[idx] = null;
+            showFloatMessage(`Bonsai returned to Bench Slot #${emptyBenchIdx + 1}`);
+            renderStorefront();
+            updateSlotTabs();
+            renderPixelArt();
+          } else if (act === 'quicksell') {
+            const earnings = Math.round(slot.askingPrice * 0.85);
+            state.coins += earnings;
+            state.storefrontSlots[idx] = null;
+            audio.coinSound();
+            showFloatMessage(`Wholesale Quick-Sold for ${earnings} MON! 🪙`);
+            renderStorefront();
+            updateUI();
+          }
+        });
+      });
+    }
+
+    // Dynamic Walk-in Visitor AI Loop
+    setInterval(() => {
+      const activeStands = state.storefrontSlots
+        .map((slot, idx) => ({ slot, idx }))
+        .filter(item => item.slot !== null);
+
+      if (activeStands.length === 0) return;
+
+      const persona = CLIENT_PERSONAS[Math.floor(Math.random() * CLIENT_PERSONAS.length)];
+      const target = activeStands[Math.floor(Math.random() * activeStands.length)];
+      const ratio = target.slot.askingPrice / Math.max(1, target.slot.tree.value);
+
+      document.getElementById('visitorIcon').textContent = persona.icon;
+      document.getElementById('visitorName').textContent = persona.name;
+      document.getElementById('visitorQuote').textContent = `${persona.quote} (Examining Stand #${target.idx + 1})`;
+
+      let buyChance = 0.50;
+      if (ratio <= 0.8) buyChance = 0.90;
+      else if (ratio <= 1.0) buyChance = 0.70;
+      else if (ratio <= 1.3) buyChance = 0.40;
+      else if (ratio <= 1.7) buyChance = 0.20;
+      else buyChance = 0.05;
+
+      const interestBadge = document.getElementById('visitorInterest');
+      if (buyChance >= 0.7) {
+        interestBadge.textContent = 'INTEREST: VERY HIGH';
+        interestBadge.className = 'text-[8px] font-pixel text-emerald-400 shrink-0';
+      } else if (buyChance >= 0.35) {
+        interestBadge.textContent = 'INTEREST: MODERATE';
+        interestBadge.className = 'text-[8px] font-pixel text-amber-400 shrink-0';
+      } else {
+        interestBadge.textContent = 'INTEREST: CAUTIOUS';
+        interestBadge.className = 'text-[8px] font-pixel text-rose-400 shrink-0';
+      }
+
+      if (Math.random() < buyChance) {
+        const payout = target.slot.askingPrice;
+        state.coins += payout;
+        state.storefrontSlots[target.idx] = null;
+        audio.coinSound();
+        showFloatMessage(`${persona.name} bought Stand #${target.idx + 1} for ${payout} MON! 🎉`);
+        renderStorefront();
+        updateUI();
+      }
+    }, 4500);
+
+    /* =================================================================
+       11. MANUAL MODAL
+    ================================================================= */
+    const modalManual = document.getElementById('modalManual');
+    document.getElementById('btnOpenManual').addEventListener('click', () => {
+      modalManual.classList.remove('hidden');
+    });
+    document.getElementById('closeManual').addEventListener('click', () => {
+      modalManual.classList.add('hidden');
+    });
+
+    /* =================================================================
+       12. TAB NAVIGATION & BENCH SLOTS
+    ================================================================= */
+    function updateSlotTabs() {
+      const container = document.getElementById('slotButtonsContainer');
+      container.innerHTML = '';
+
+      for (let i = 0; i < 4; i++) {
+        const btn = document.createElement('button');
+        const isUnlocked = i < state.unlockedSlots;
+        const hasTree = state.nurserySlots[i] !== null;
+
+        if (isUnlocked) {
+          btn.className = `px-2 py-1 rounded transition-all ${
+            state.activeSlotIndex === i
+              ? 'bg-amber-600 text-stone-950 font-bold shadow'
+              : 'bg-stone-800 text-stone-300 border border-stone-700'
+          }`;
+          btn.textContent = `P${i + 1}${hasTree ? ' 🪴' : ''}`;
+          btn.addEventListener('click', () => {
+            state.activeSlotIndex = i;
+            updateSlotTabs();
+            updateUI();
+            renderPixelArt();
+          });
+        } else {
+          btn.className = "px-2 py-1 rounded bg-stone-900 border border-stone-800 text-stone-600 font-bold";
+          btn.textContent = `🔒 P${i + 1}`;
+          btn.addEventListener('click', () => {
+            if (state.coins >= 400) {
+              state.coins -= 400;
+              state.unlockedSlots = Math.min(4, state.unlockedSlots + 1);
+              audio.saleFanfare();
+              showFloatMessage(`Unlocked Bench Slot #${state.unlockedSlots}!`);
+              updateSlotTabs();
+              updateUI();
+            } else {
+              showFloatMessage('Need 400 MON to unlock slot!');
+            }
+          });
+        }
+        container.appendChild(btn);
+      }
+    }
+
+    const tabWorkshop = document.getElementById('tabWorkshop');
+    const tabStorefront = document.getElementById('tabStorefront');
+    const viewWorkshop = document.getElementById('viewWorkshop');
+    const viewStorefront = document.getElementById('viewStorefront');
+
+    tabWorkshop.addEventListener('click', () => {
+      state.view = 'workshop';
+      tabWorkshop.classList.replace('bg-stone-800', 'bg-amber-600');
+      tabWorkshop.classList.replace('text-stone-400', 'text-stone-950');
+      tabStorefront.classList.replace('bg-amber-600', 'bg-stone-800');
+      tabStorefront.classList.replace('text-stone-950', 'text-stone-400');
+      viewWorkshop.classList.remove('hidden');
+      viewStorefront.classList.add('hidden');
+      renderPixelArt();
+    });
+
+    tabStorefront.addEventListener('click', () => {
+      state.view = 'storefront';
+      tabStorefront.classList.replace('bg-stone-800', 'bg-amber-600');
+      tabStorefront.classList.replace('text-stone-400', 'text-stone-950');
+      tabWorkshop.classList.replace('bg-amber-600', 'bg-stone-800');
+      tabWorkshop.classList.replace('text-stone-950', 'text-stone-400');
+      viewStorefront.classList.remove('hidden');
+      viewWorkshop.classList.add('hidden');
+      renderStorefront();
+    });
+
+    /* =================================================================
+       13. SHOP MODAL (18 Pots, 12 Tables, 8 Scenery)
+    ================================================================= */
+    const modalShop = document.getElementById('modalShop');
+    const shopContainer = document.getElementById('shopItemsContainer');
+    let currentShopCategory = 'pots';
+
+    function renderShopModal() {
+      shopContainer.innerHTML = '';
+      let items = [];
+      if (currentShopCategory === 'pots') items = EXPANDED_POTS;
+      else if (currentShopCategory === 'tables') items = WOODEN_TABLES;
+      else if (currentShopCategory === 'backdrops') items = SCENIC_BACKDROPS;
+
+      items.forEach(item => {
+        const row = document.createElement('div');
+        row.className = "p-2 bg-stone-950 border border-stone-800 rounded flex justify-between items-center text-[10px]";
+
+        const isEquipped = (currentShopCategory === 'tables' && state.currentTable.id === item.id) ||
+                           (currentShopCategory === 'backdrops' && state.currentBackdrop.id === item.id) ||
+                           (currentShopCategory === 'pots' && state.nurserySlots[state.activeSlotIndex]?.pot.id === item.id);
+
+        row.innerHTML = `
+          <div>
+            <div class="font-bold text-stone-200">${item.name}</div>
+            <div class="text-[9px] text-stone-400">${item.owned ? (isEquipped ? '✨ Equipped' : 'Owned') : `Price: ${item.price} MON`}</div>
+          </div>
+          <button class="px-2 py-1 rounded font-pixel text-[8px] ${
+            isEquipped
+              ? 'bg-emerald-950 text-emerald-400 border border-emerald-600'
+              : item.owned
+              ? 'bg-stone-800 text-stone-200 border border-stone-600'
+              : 'bg-amber-600 text-stone-950 font-bold active:scale-95'
+          }">
+            ${isEquipped ? 'ACTIVE' : item.owned ? 'USE' : 'BUY'}
+          </button>
+        `;
+
+        const btn = row.querySelector('button');
+        btn.addEventListener('click', () => {
+          if (!item.owned) {
+            if (state.coins >= item.price) {
+              state.coins -= item.price;
+              item.owned = true;
+              audio.saleFanfare();
+              showFloatMessage(`Purchased ${item.name}!`);
+            } else {
+              showFloatMessage('Not enough MON!');
+              return;
+            }
+          }
+
+          if (currentShopCategory === 'tables') state.currentTable = item;
+          else if (currentShopCategory === 'backdrops') state.currentBackdrop = item;
+          else if (currentShopCategory === 'pots') {
+            const tree = state.nurserySlots[state.activeSlotIndex];
+            if (tree) {
+              tree.pot = item;
+              tree.generatePixelStructure();
+              tree.calculateScore();
+            }
+          }
+          renderShopModal();
+          updateUI();
+          renderPixelArt();
+        });
+
+        shopContainer.appendChild(row);
+      });
+    }
+
+    document.getElementById('btnShop').addEventListener('click', () => {
+      renderShopModal();
+      modalShop.classList.remove('hidden');
+    });
+    document.getElementById('closeShop').addEventListener('click', () => {
+      modalShop.classList.add('hidden');
+    });
+
+    document.getElementById('subtabPots').addEventListener('click', () => {
+      currentShopCategory = 'pots';
+      renderShopModal();
+    });
+    document.getElementById('subtabTables').addEventListener('click', () => {
+      currentShopCategory = 'tables';
+      renderShopModal();
+    });
+    document.getElementById('subtabBackdrops').addEventListener('click', () => {
+      currentShopCategory = 'backdrops';
+      renderShopModal();
+    });
+
+    /* =================================================================
+       14. CATALOG MODAL (22 Botanical Species & Configurations)
+    ================================================================= */
+    const modalCatalog = document.getElementById('modalCatalog');
+    const catalogList = document.getElementById('catalogList');
+
+    function renderCatalogModal() {
+      catalogList.innerHTML = '';
+      ALL_18_STYLES.forEach((style, idx) => {
+        const item = document.createElement('div');
+        item.className = "p-2 bg-stone-950 border border-stone-800 rounded flex justify-between items-center text-[10px]";
+        
+        const badgeColor = style.config === 'weeper' ? 'text-emerald-400 border-emerald-600' :
+                           style.config === 'forest' ? 'text-amber-400 border-amber-600' :
+                           style.config === 'triple' ? 'text-sky-400 border-sky-600' :
+                           style.config === 'multi'  ? 'text-purple-400 border-purple-600' :
+                           style.config === 'dual'   ? 'text-yellow-400 border-yellow-600' : 'text-stone-400 border-stone-700';
+
+        item.innerHTML = `
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-amber-400 font-pixel text-[9px]">${style.name}</span>
+              <span class="text-[7px] font-pixel border px-1 py-0.2 rounded ${badgeColor}">${style.config.toUpperCase()}</span>
+            </div>
+            <div class="text-[9px] text-stone-400 mt-0.5">${style.desc}</div>
+          </div>
+          <button class="px-2.5 py-1.5 bg-sky-950 border border-sky-600 rounded text-sky-200 font-pixel text-[8px] active:scale-95 shrink-0 ml-2">
+            PLANT (50 🪙)
+          </button>
+        `;
+
+        item.querySelector('button').addEventListener('click', () => {
+          if (state.coins < 50) {
+            showFloatMessage('Need 50 MON for stock!');
+            return;
+          }
+          state.coins -= 50;
+          
+          let chosenSpecies;
+          if (style.id === 'shidare') {
+            chosenSpecies = BOTANIC_SPECIES.find(s => s.id === 'willow');
+          } else if (style.id === 'mugo_alpine') {
+            chosenSpecies = BOTANIC_SPECIES.find(s => s.id === 'mugo_pine');
+          } else if (style.id === 'redwood_cathedral') {
+            chosenSpecies = BOTANIC_SPECIES.find(s => s.id === 'redwood');
+          } else if (style.id === 'birch_grove') {
+            chosenSpecies = BOTANIC_SPECIES.find(s => s.id === 'paper_birch');
+          } else if (style.id === 'ancient_oak_sokan') {
+            chosenSpecies = BOTANIC_SPECIES.find(s => s.id === 'english_oak');
+          } else if (style.id === 'gokan_quintuple') {
+            chosenSpecies = BOTANIC_SPECIES.find(s => s.id === 'chinese_elm');
+          } else {
+            // Intelligent species picking with priority towards matched natural form
+            const matchingSpecies = BOTANIC_SPECIES.filter(s => s.preferredConfig === style.config);
+            if (matchingSpecies.length > 0 && Math.random() < 0.75) {
+              chosenSpecies = matchingSpecies[Math.floor(Math.random() * matchingSpecies.length)];
+            } else {
+              chosenSpecies = BOTANIC_SPECIES[Math.floor(Math.random() * BOTANIC_SPECIES.length)];
+            }
+          }
+
+          const newTree = new ProceduralBonsai(idx, chosenSpecies.id, state.nurserySlots[state.activeSlotIndex]?.pot.id || 'nanban_wide');
+          state.nurserySlots[state.activeSlotIndex] = newTree;
+
+          audio.coinSound();
+          modalCatalog.classList.add('hidden');
+          showFloatMessage(`Planted ${chosenSpecies.name} Sprout!`);
+          updateSlotTabs();
+          updateUI();
+          renderPixelArt();
+        });
+
+        catalogList.appendChild(item);
+      });
+    }
+
+    document.getElementById('btnCatalog').addEventListener('click', () => {
+      renderCatalogModal();
+      modalCatalog.classList.remove('hidden');
+    });
+    document.getElementById('closeCatalog').addEventListener('click', () => {
+      modalCatalog.classList.add('hidden');
+    });
+
+    /* =================================================================
+       15. UPGRADES MODAL
+    ================================================================= */
+    const modalUpgrades = document.getElementById('modalUpgrades');
+    document.getElementById('btnUpgradeModal').addEventListener('click', () => {
+      modalUpgrades.classList.remove('hidden');
+    });
+    document.getElementById('closeUpgrades').addEventListener('click', () => {
+      modalUpgrades.classList.add('hidden');
+    });
+
+    function bindUpgrade(btnId, key, price) {
+      const btn = document.getElementById(btnId);
+      btn.addEventListener('click', () => {
+        if (state.upgrades[key]) return;
+        if (state.coins >= price) {
+          state.coins -= price;
+          state.upgrades[key] = true;
+          btn.textContent = 'OWNED';
+          btn.classList.replace('bg-amber-600', 'bg-stone-700');
+          audio.saleFanfare();
+          showFloatMessage('Upgrade Acquired!');
+          updateUI();
+        } else {
+          showFloatMessage('Not enough MON!');
+        }
+      });
+    }
+    bindUpgrade('buyFertilizer', 'fertilizer', 350);
+    bindUpgrade('buyIrrigation', 'irrigation', 480);
+    bindUpgrade('buyScroll', 'scroll', 750);
+
+    /* =================================================================
+       16. GOD MODE
+    ================================================================= */
+    const modalGod = document.getElementById('modalGod');
+    document.getElementById('btnGod').addEventListener('click', () => {
+      modalGod.classList.remove('hidden');
+    });
+    document.getElementById('closeGod').addEventListener('click', () => {
+      modalGod.classList.add('hidden');
+    });
+
+    document.getElementById('godCoins').addEventListener('click', () => {
+      state.coins += 99999;
+      audio.coinSound();
+      showFloatMessage('+99,999 MON Blessed! 🪙');
+      updateUI();
+    });
+
+    document.getElementById('godAge').addEventListener('click', () => {
+      const tree = state.nurserySlots[state.activeSlotIndex];
+      if (tree) {
+        tree.growth = 100;
+        tree.calculateScore();
+        showFloatMessage('Tree Aged to 100%!');
+        updateUI();
+        renderPixelArt();
+      }
+    });
+
+    document.getElementById('godScore').addEventListener('click', () => {
+      const tree = state.nurserySlots[state.activeSlotIndex];
+      if (tree) {
+        tree.isGodRated = true;
+        tree.calculateScore();
+        audio.saleFanfare();
+        showFloatMessage('100/100 Flawless Zen! ✨ (Value 5,888 MON)');
+        updateUI();
+        renderPixelArt();
+      }
+    });
+
+    document.getElementById('godWater').addEventListener('click', () => {
+      const tree = state.nurserySlots[state.activeSlotIndex];
+      if (tree) {
+        tree.moisture = 100;
+        audio.waterSound();
+        showFloatMessage('Hydrated to 100%!');
+        updateUI();
+        renderPixelArt();
+      }
+    });
+
+    document.getElementById('godUnlockSlots').addEventListener('click', () => {
+      state.unlockedSlots = 4;
+      showFloatMessage('All 4 Nursery Slots Unlocked!');
+      updateSlotTabs();
+    });
+
+    document.getElementById('godFillStore').addEventListener('click', () => {
+      for (let i = 0; i < 4; i++) {
+        const randStyle = Math.floor(Math.random() * ALL_18_STYLES.length);
+        const t = new ProceduralBonsai(randStyle, BOTANIC_SPECIES[i].id, 'nanban_wide');
+        t.growth = 100;
+        t.isGodRated = true;
+        t.calculateScore();
+        state.storefrontSlots[i] = {
+          tree: t,
+          askingPrice: 3500
+        };
+      }
+      audio.saleFanfare();
+      showFloatMessage('4 Masterpiece Bonsais Staged in Store!');
+      renderStorefront();
+    });
+
+    document.getElementById('godUnlockAll').addEventListener('click', () => {
+      EXPANDED_POTS.forEach(p => p.owned = true);
+      WOODEN_TABLES.forEach(t => t.owned = true);
+      SCENIC_BACKDROPS.forEach(b => b.owned = true);
+      state.upgrades.fertilizer = true;
+      state.upgrades.irrigation = true;
+      state.upgrades.scroll = true;
+      audio.saleFanfare();
+      showFloatMessage('Unlocked All Decors & Upgrades!');
+      updateUI();
+    });
+
+    /* =================================================================
+       17. PERSISTENT SAVE & LOAD
+    ================================================================= */
+    const STORAGE_KEY = 'zen_bonsai_save_vault_forest_v8';
+    const modalSaveLoad = document.getElementById('modalSaveLoad');
+    const saveCodeArea = document.getElementById('saveCodeArea');
+
+    function serializeTree(tree) {
+      if (!tree) return null;
+      return {
+        id: tree.id,
+        styleIndex: ALL_18_STYLES.findIndex(s => s.id === tree.style.id),
+        speciesId: tree.species.id,
+        potId: tree.pot.id,
+        growth: tree.growth,
+        moisture: tree.moisture,
+        pruneCount: tree.pruneCount,
+        wireCount: tree.wireCount,
+        bendTension: tree.bendTension,
+        score: tree.score,
+        value: tree.value,
+        isGodRated: !!tree.isGodRated
+      };
+    }
+
+    function deserializeTree(data) {
+      if (!data) return null;
+      const sIdx = data.styleIndex >= 0 ? data.styleIndex : 0;
+      const tree = new ProceduralBonsai(sIdx, data.speciesId, data.potId);
+      tree.id = data.id || tree.id;
+      tree.growth = data.growth ?? 25;
+      tree.moisture = data.moisture ?? 70;
+      tree.pruneCount = data.pruneCount ?? 0;
+      tree.wireCount = data.wireCount ?? 0;
+      tree.bendTension = data.bendTension ?? 0;
+      tree.isGodRated = !!data.isGodRated;
+      tree.score = data.score ?? 50;
+      tree.value = data.value ?? 180;
+      tree.generatePixelStructure();
+      tree.calculateScore();
+      return tree;
+    }
+
+    function generateSavePackage() {
+      return {
+        version: 8,
+        coins: state.coins,
+        unlockedSlots: state.unlockedSlots,
+        activeSlotIndex: state.activeSlotIndex,
+        autoCareEnabled: state.autoCareEnabled,
+        upgrades: state.upgrades,
+        currentTableId: state.currentTable.id,
+        currentBackdropId: state.currentBackdrop.id,
+        ownedPots: EXPANDED_POTS.filter(p => p.owned).map(p => p.id),
+        ownedTables: WOODEN_TABLES.filter(t => t.owned).map(t => t.id),
+        ownedBackdrops: SCENIC_BACKDROPS.filter(b => b.owned).map(b => b.id),
+        nurserySlots: state.nurserySlots.map(serializeTree),
+        vault: state.vault.map(serializeTree),
+        storefrontSlots: state.storefrontSlots.map(slot => {
+          if (!slot) return null;
+          return {
+            askingPrice: slot.askingPrice,
+            tree: serializeTree(slot.tree)
+          };
+        })
+      };
+    }
+
+    function applySavePackage(pkg) {
+      if (!pkg || typeof pkg !== 'object') return false;
+
+      state.coins = typeof pkg.coins === 'number' ? pkg.coins : 450;
+      state.unlockedSlots = Math.min(4, Math.max(2, pkg.unlockedSlots || 2));
+      state.activeSlotIndex = Math.min(state.unlockedSlots - 1, Math.max(0, pkg.activeSlotIndex || 0));
+      state.autoCareEnabled = !!pkg.autoCareEnabled;
+
+      if (pkg.upgrades) {
+        state.upgrades.fertilizer = !!pkg.upgrades.fertilizer;
+        state.upgrades.irrigation = !!pkg.upgrades.irrigation;
+        state.upgrades.scroll = !!pkg.upgrades.scroll;
+      }
+
+      if (Array.isArray(pkg.ownedPots)) {
+        EXPANDED_POTS.forEach(p => { p.owned = p.price === 0 || pkg.ownedPots.includes(p.id); });
+      }
+      if (Array.isArray(pkg.ownedTables)) {
+        WOODEN_TABLES.forEach(t => { t.owned = t.price === 0 || pkg.ownedTables.includes(t.id); });
+      }
+      if (Array.isArray(pkg.ownedBackdrops)) {
+        SCENIC_BACKDROPS.forEach(b => { b.owned = b.price === 0 || pkg.ownedBackdrops.includes(b.id); });
+      }
+
+      if (pkg.currentTableId) {
+        state.currentTable = WOODEN_TABLES.find(t => t.id === pkg.currentTableId) || WOODEN_TABLES[0];
+      }
+      if (pkg.currentBackdropId) {
+        state.currentBackdrop = SCENIC_BACKDROPS.find(b => b.id === pkg.currentBackdropId) || SCENIC_BACKDROPS[0];
+      }
+
+      state.nurserySlots = [null, null, null, null];
+      if (Array.isArray(pkg.nurserySlots)) {
+        pkg.nurserySlots.forEach((data, idx) => {
+          if (idx < 4) state.nurserySlots[idx] = deserializeTree(data);
+        });
+      }
+
+      state.vault = [];
+      if (Array.isArray(pkg.vault)) {
+        pkg.vault.forEach(data => {
+          const t = deserializeTree(data);
+          if (t && state.vault.length < 12) state.vault.push(t);
+        });
+      }
+
+      state.storefrontSlots = [null, null, null, null];
+      if (Array.isArray(pkg.storefrontSlots)) {
+        pkg.storefrontSlots.forEach((item, idx) => {
+          if (idx < 4 && item && item.tree) {
+            state.storefrontSlots[idx] = {
+              askingPrice: item.askingPrice || item.tree.value || 180,
+              tree: deserializeTree(item.tree)
+            };
+          }
+        });
+      }
+
+      btnToggleAutoCare.textContent = state.autoCareEnabled ? '🤖 AUTO: ON' : '🤖 AUTO: OFF';
+      btnToggleAutoCare.className = state.autoCareEnabled
+        ? 'px-1.5 py-1 rounded border text-[8px] font-pixel transition-all bg-emerald-950 text-emerald-300 border-emerald-500 active:scale-95'
+        : 'px-1.5 py-1 rounded border text-[8px] font-pixel transition-all bg-stone-800 text-stone-400 border-stone-700 active:scale-95';
+
+      updateSlotTabs();
+      renderStorefront();
+      updateUI();
+      renderPixelArt();
+      return true;
+    }
+
+    function saveToLocalStorage(isAuto = false) {
+      try {
+        const json = JSON.stringify(generateSavePackage());
+        localStorage.setItem(STORAGE_KEY, json);
+        if (!isAuto) {
+          audio.coinSound();
+          showFloatMessage('Saved to local storage!');
+        }
+      } catch (err) {}
+    }
+
+    function loadFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return false;
+        const pkg = JSON.parse(raw);
+        return applySavePackage(pkg);
+      } catch (e) {
+        return false;
+      }
+    }
+
+    document.getElementById('btnSaveLoad').addEventListener('click', () => {
+      saveCodeArea.value = JSON.stringify(generateSavePackage());
+      modalSaveLoad.classList.remove('hidden');
+    });
+    document.getElementById('closeSaveLoad').addEventListener('click', () => {
+      modalSaveLoad.classList.add('hidden');
+    });
+
+    document.getElementById('btnManualSave').addEventListener('click', () => {
+      saveToLocalStorage(false);
+      saveCodeArea.value = JSON.stringify(generateSavePackage());
+    });
+
+    document.getElementById('btnManualLoad').addEventListener('click', () => {
+      if (loadFromLocalStorage()) {
+        modalSaveLoad.classList.add('hidden');
+        showFloatMessage('Save Restored!');
+      } else {
+        showFloatMessage('No save found!');
+      }
+    });
+
+    document.getElementById('btnCopySaveCode').addEventListener('click', () => {
+      saveCodeArea.value = JSON.stringify(generateSavePackage());
+      saveCodeArea.focus();
+      saveCodeArea.select();
+      try {
+        document.execCommand('copy');
+        showFloatMessage('Save code copied!');
+      } catch (err) {}
+    });
+
+    document.getElementById('btnApplySaveCode').addEventListener('click', () => {
+      try {
+        const parsed = JSON.parse(saveCodeArea.value.trim());
+        if (applySavePackage(parsed)) {
+          saveToLocalStorage(true);
+          audio.saleFanfare();
+          modalSaveLoad.classList.add('hidden');
+          showFloatMessage('Save code imported!');
+        }
+      } catch (e) {
+        showFloatMessage('Invalid save string.');
+      }
+    });
+
+    document.getElementById('btnResetSave').addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY);
+      state.coins = 450;
+      state.unlockedSlots = 2;
+      state.activeSlotIndex = 0;
+      state.autoCareEnabled = false;
+      state.nurserySlots = [
+        new ProceduralBonsai(18, 'redwood', 'nanban_wide'),
+        new ProceduralBonsai(19, 'paper_birch', 'kurama_rock'),
+        null, 
+        null
+      ];
+      state.storefrontSlots = [null, null, null, null];
+      state.vault = [];
+      modalSaveLoad.classList.add('hidden');
+      showFloatMessage('New game started.');
+      updateSlotTabs();
+      renderStorefront();
+      updateUI();
+      renderPixelArt();
+    });
+
+    setInterval(() => saveToLocalStorage(true), 15000);
+
+    /* =================================================================
+       18. UI SYNC & GAME LOOP
+    ================================================================= */
+    function updateUI() {
+      document.getElementById('uiCoins').textContent = state.coins;
+      const activeTree = state.nurserySlots[state.activeSlotIndex];
+
+      if (!activeTree) {
+        document.getElementById('activeTreeNameBadge').textContent = 'Empty Bench';
+        document.getElementById('statZen').textContent = '--';
+        document.getElementById('statGrowth').textContent = '--';
+        document.getElementById('statMoisture').textContent = '--';
+        document.getElementById('statCurves').textContent = '--';
+        document.getElementById('statValue').textContent = '--';
+        document.getElementById('canvasZenScore').textContent = '--';
+        return;
+      }
+
+      document.getElementById('activeTreeNameBadge').textContent = `${activeTree.species.name} (${activeTree.style.name.split(' ')[0]})`;
+      document.getElementById('statZen').textContent = `${Math.round(activeTree.score)}/100`;
+      document.getElementById('statGrowth').textContent = `${Math.floor(activeTree.growth)}%`;
+      document.getElementById('statMoisture').textContent = `${Math.floor(activeTree.moisture)}%`;
+      document.getElementById('statCurves').textContent = activeTree.wireCount > 0 ? `Wired (x${activeTree.wireCount})` : 'Natural Poise';
+      document.getElementById('statValue').textContent = `${activeTree.value} 🪙`;
+      
+      // Update the persistent in-canvas Zen badge
+      document.getElementById('canvasZenScore').textContent = Math.round(activeTree.score);
+    }
+
+    const btnSound = document.getElementById('btnSound');
+    btnSound.addEventListener('click', () => {
+      audio.enabled = !audio.enabled;
+      btnSound.textContent = audio.enabled ? '🔊' : '🔇';
+    });
+
+    let lastTime = performance.now();
+    function gameLoop(now) {
+      const dt = Math.min(0.1, (now - lastTime) / 1000);
+      lastTime = now;
+
+      state.nurserySlots.forEach(tree => {
+        if (tree) tree.grow(dt);
+      });
+
+      if (state.view === 'workshop') {
+        renderPixelArt();
+        updateUI();
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    /* =================================================================
+       19. INITIALIZATION
+    ================================================================= */
+    window.onload = function() {
+      const loaded = loadFromLocalStorage();
+      if (!loaded) {
+        // Starts with a majestic Coast Redwood Cathedral (Sankan triple-trunk) and a Paper Birch Sylvan grove
+        const coastalRedwood = new ProceduralBonsai(18, 'redwood', 'nanban_wide');
+        coastalRedwood.growth = 42;
+        const paperBirchGrove = new ProceduralBonsai(19, 'paper_birch', 'kurama_rock');
+        paperBirchGrove.growth = 48;
+
+        state.nurserySlots[0] = coastalRedwood;
+        state.nurserySlots[1] = paperBirchGrove;
+
+        updateSlotTabs();
+        renderStorefront();
+        updateUI();
+        renderPixelArt();
+      }
+      requestAnimationFrame(gameLoop);
+    };
+  </script>
+</body>
+</html>
